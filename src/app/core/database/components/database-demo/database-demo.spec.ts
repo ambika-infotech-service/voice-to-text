@@ -79,4 +79,51 @@ describe('DatabaseDemoComponent', () => {
     expect(mockCategoryRepo.getAll).toHaveBeenCalled();
     expect(component['categories']()).toEqual([{ Id: 1, Name: 'Plumbing', IsActive: 1, CreatedAt: 'now' }]);
   });
+
+  it('should populate edit form and activate edit mode when startEditProduct is called', async () => {
+    mockDbService.query.mockResolvedValueOnce([{ AttributeValueId: 3 }]);
+    mockProductRepo.update = vi.fn().mockResolvedValue(undefined);
+
+    const testProd = {
+      Id: 10,
+      SKU: 'TEST-SKU-1',
+      CategoryId: 2,
+      DisplayName: 'Test Product Name',
+      Barcode: '999999',
+      HSNCode: '1111',
+      GST: 18.0,
+      SellingPrice: 500,
+      Unit: 'meter',
+      IsActive: 1,
+      CreatedAt: 'then'
+    };
+
+    await component['startEditProduct'](testProd);
+
+    expect(component['isEditingProduct']()).toBe(true);
+    expect(component['selectedMappingValues']()).toEqual([3]);
+    expect(component['editProductForm'].value).toEqual({
+      id: 10,
+      sku: 'TEST-SKU-1',
+      categoryId: 2,
+      displayName: 'Test Product Name',
+      barcode: '999999',
+      hsnCode: '1111',
+      gst: 18.0,
+      sellingPrice: 500,
+      unit: 'meter'
+    });
+
+    // Save/Update action verification
+    await component['updateProduct']();
+    expect(mockProductRepo.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        Id: 10,
+        SKU: 'TEST-SKU-1',
+        Unit: 'meter'
+      }),
+      [3]
+    );
+    expect(component['isEditingProduct']()).toBe(false);
+  });
 });

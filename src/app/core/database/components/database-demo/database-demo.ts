@@ -47,9 +47,13 @@ export class DatabaseDemo implements OnInit {
 
   protected readonly selectedAttributeId = signal<number | null>(null);
 
+  // Edit product mode state
+  protected readonly isEditingProduct = signal(false);
+
   // Form Groups
   protected categoryForm!: FormGroup;
   protected productForm!: FormGroup;
+  protected editProductForm!: FormGroup; // Form for editing
   protected attributeForm!: FormGroup;
   protected attributeValueForm!: FormGroup;
   protected aliasForm!: FormGroup;
@@ -78,6 +82,18 @@ export class DatabaseDemo implements OnInit {
       gst: [18.0, [Validators.required, Validators.min(0)]],
       sellingPrice: [0, [Validators.required, Validators.min(0)]],
       unit: ['Pcs', Validators.required]
+    });
+
+    this.editProductForm = this.fb.group({
+      id: [null, Validators.required],
+      sku: ['', [Validators.required, Validators.minLength(3)]],
+      categoryId: ['', Validators.required],
+      displayName: ['', [Validators.required, Validators.minLength(3)]],
+      barcode: [''],
+      hsnCode: [''],
+      gst: [18.0, [Validators.required, Validators.min(0)]],
+      sellingPrice: [0, [Validators.required, Validators.min(0)]],
+      unit: ['', Validators.required]
     });
 
     this.attributeForm = this.fb.group({
@@ -224,6 +240,67 @@ export class DatabaseDemo implements OnInit {
   protected async selectProduct(id: number): Promise<void> {
     this.selectedProductId.set(id);
     await this.loadAllData();
+  }
+
+  protected async startEditProduct(prod: Product): Promise<void> {
+    if (prod.Id === undefined) return;
+    
+    this.editProductForm.setValue({
+      id: prod.Id,
+      sku: prod.SKU,
+      categoryId: prod.CategoryId,
+      displayName: prod.DisplayName,
+      barcode: prod.Barcode || '',
+      hsnCode: prod.HSNCode || '',
+      gst: prod.GST,
+      sellingPrice: prod.SellingPrice,
+      unit: prod.Unit
+    });
+
+    try {
+      // Load current product mapping values
+      const mappings = await this.dbService.query<any>(`
+        SELECT AttributeValueId FROM ProductAttribute WHERE ProductId = ?;
+      `, [prod.Id]);
+      this.selectedMappingValues.set(mappings.map(row => Number(row.AttributeValueId)));
+      this.isEditingProduct.set(true);
+    } catch (err) {
+      console.error('Error fetching product mappings', err);
+    }
+  }
+
+  protected cancelEditProduct(): void {
+    this.isEditingProduct.set(false);
+    this.selectedMappingValues.set([]);
+    this.editProductForm.reset();
+  }
+
+  protected async updateProduct(): Promise<void> {
+    if (this.editProductForm.invalid) return;
+
+    try {
+      const val = this.editProductForm.value;
+      const product: Product = {
+        Id: Number(val.id),
+        SKU: val.sku,
+        CategoryId: Number(val.categoryId),
+        DisplayName: val.displayName,
+        Barcode: val.barcode || null,
+        HSNCode: val.hsnCode || null,
+        GST: Number(val.gst),
+        SellingPrice: Number(val.sellingPrice),
+        Unit: val.unit,
+        IsActive: 1,
+        CreatedAt: new Date().toISOString()
+      };
+
+      await this.productRepo.update(product, this.selectedMappingValues());
+      this.cancelEditProduct();
+      await this.loadAllData();
+    } catch (err) {
+      console.error('Failed to update product details', err);
+      alert('Failed to update product details. SKU is likely duplicated.');
+    }
   }
 
   protected toggleAttributeValueMapping(valId: number): void {

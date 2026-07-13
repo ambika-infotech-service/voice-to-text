@@ -47,78 +47,156 @@
     <!-- 1. PRODUCTS TAB -->
     @if (activeCrudTab() === 'products') {
       <div class="row g-4">
-        <!-- Add Product Form -->
+        <!-- Add/Edit Product Form -->
         <div class="col-lg-4 border-end">
-          <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Add New Product</h4>
-          <form [formGroup]="productForm" (ngSubmit)="addProduct()">
-            <div class="mb-3">
-              <label for="sku" class="form-label small font-weight-bold">SKU Code (Unique)</label>
-              <input id="sku" type="text" class="form-control" formControlName="sku" placeholder="e.g. SUP-PVC-9">
-            </div>
-
-            <div class="mb-3">
-              <label for="displayName" class="form-label small font-weight-bold">Display Name</label>
-              <input id="displayName" type="text" class="form-control" formControlName="displayName" placeholder="e.g. Supreme PVC Pipe 2 Inch">
-            </div>
-
-            <div class="mb-3">
-              <label for="categoryId" class="form-label small font-weight-bold">Category</label>
-              <select id="categoryId" class="form-select" formControlName="categoryId">
-                <option value="" disabled>Select Category</option>
-                @for (cat of categories(); track cat.Id) {
-                  <option [value]="cat.Id">{{ cat.Name }}</option>
-                }
-              </select>
-            </div>
-
-            <div class="row">
-              <div class="col-6 mb-3">
-                <label for="gst" class="form-label small font-weight-bold">GST %</label>
-                <input id="gst" type="number" class="form-control" formControlName="gst">
+          @if (!isEditingProduct()) {
+            <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Add New Product</h4>
+            <form [formGroup]="productForm" (ngSubmit)="addProduct()">
+              <div class="mb-3">
+                <label for="sku" class="form-label small font-weight-bold">SKU Code (Unique)</label>
+                <input id="sku" type="text" class="form-control" formControlName="sku" placeholder="e.g. SUP-PVC-9">
               </div>
-              <div class="col-6 mb-3">
-                <label for="sellingPrice" class="form-label small font-weight-bold">Price (₹)</label>
-                <input id="sellingPrice" type="number" class="form-control" formControlName="sellingPrice">
-              </div>
-            </div>
 
-            <div class="row">
-              <div class="col-6 mb-3">
-                <label for="unit" class="form-label small font-weight-bold">Unit</label>
-                <input id="unit" type="text" class="form-control" formControlName="unit">
+              <div class="mb-3">
+                <label for="displayName" class="form-label small font-weight-bold">Display Name</label>
+                <input id="displayName" type="text" class="form-control" formControlName="displayName" placeholder="e.g. Supreme PVC Pipe 2 Inch">
               </div>
-              <div class="col-6 mb-3">
-                <label for="barcode" class="form-label small font-weight-bold">Barcode</label>
-                <input id="barcode" type="text" class="form-control" formControlName="barcode" placeholder="Optional">
-              </div>
-            </div>
 
-            <!-- Map Attributes Checkbox List -->
-            <div class="mb-3">
-              <label class="form-label small font-weight-bold d-block">Associate Characteristics</label>
-              <div class="border rounded p-2 bg-light overflow-auto" style="max-height: 120px;">
-                @for (val of allAvailableAttributeValues(); track val.Id) {
-                  <div class="form-check">
-                    <input
-                      type="checkbox"
-                      [id]="'val-' + val.Id"
-                      class="form-check-input"
-                      [checked]="selectedMappingValues().includes(val.Id)"
-                      (change)="toggleAttributeValueMapping(val.Id)">
-                    <label [for]="'val-' + val.Id" class="form-check-label small">
-                      <strong>{{ val.attributeName }}</strong>: {{ val.DisplayValue }}
-                    </label>
-                  </div>
-                } @empty {
-                  <span class="text-muted small">No attribute values configured. Create them in the attributes tab.</span>
-                }
+              <div class="mb-3">
+                <label for="categoryId" class="form-label small font-weight-bold">Category</label>
+                <select id="categoryId" class="form-select" formControlName="categoryId">
+                  <option value="" disabled>Select Category</option>
+                  @for (cat of categories(); track cat.Id) {
+                    <option [value]="cat.Id">{{ cat.Name }}</option>
+                  }
+                </select>
               </div>
-            </div>
 
-            <button type="submit" class="btn btn-primary w-100 py-2 font-weight-bold" [disabled]="productForm.invalid">
-              Insert Product
-            </button>
-          </form>
+              <div class="row">
+                <div class="col-6 mb-3">
+                  <label for="gst" class="form-label small font-weight-bold">GST %</label>
+                  <input id="gst" type="number" class="form-control" formControlName="gst">
+                </div>
+                <div class="col-6 mb-3">
+                  <label for="sellingPrice" class="form-label small font-weight-bold">Price (₹)</label>
+                  <input id="sellingPrice" type="number" class="form-control" formControlName="sellingPrice">
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-6 mb-3">
+                  <label for="unit" class="form-label small font-weight-bold">Unit</label>
+                  <input id="unit" type="text" class="form-control" formControlName="unit">
+                </div>
+                <div class="col-6 mb-3">
+                  <label for="barcode" class="form-label small font-weight-bold">Barcode</label>
+                  <input id="barcode" type="text" class="form-control" formControlName="barcode" placeholder="Optional">
+                </div>
+              </div>
+
+              <!-- Map Attributes Checkbox List -->
+              <div class="mb-3">
+                <label class="form-label small font-weight-bold d-block">Associate Characteristics</label>
+                <div class="border rounded p-2 bg-light overflow-auto" style="max-height: 120px;">
+                  @for (val of allAvailableAttributeValues(); track val.Id) {
+                    <div class="form-check">
+                      <input
+                        type="checkbox"
+                        [id]="'val-' + val.Id"
+                        class="form-check-input"
+                        [checked]="selectedMappingValues().includes(val.Id)"
+                        (change)="toggleAttributeValueMapping(val.Id)">
+                      <label [for]="'val-' + val.Id" class="form-check-label small">
+                        <strong>{{ val.attributeName }}</strong>: {{ val.DisplayValue }}
+                      </label>
+                    </div>
+                  } @empty {
+                    <span class="text-muted small">No attribute values configured. Create them in the attributes tab.</span>
+                  }
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary w-100 py-2 font-weight-bold" [disabled]="productForm.invalid">
+                Insert Product
+              </button>
+            </form>
+          } @else {
+            <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold text-warning">Edit Product</h4>
+            <form [formGroup]="editProductForm" (ngSubmit)="updateProduct()">
+              <div class="mb-3">
+                <label for="edit-sku" class="form-label small font-weight-bold">SKU Code (Unique)</label>
+                <input id="edit-sku" type="text" class="form-control" formControlName="sku">
+              </div>
+
+              <div class="mb-3">
+                <label for="edit-displayName" class="form-label small font-weight-bold">Display Name</label>
+                <input id="edit-displayName" type="text" class="form-control" formControlName="displayName">
+              </div>
+
+              <div class="mb-3">
+                <label for="edit-categoryId" class="form-label small font-weight-bold">Category</label>
+                <select id="edit-categoryId" class="form-select" formControlName="categoryId">
+                  <option value="" disabled>Select Category</option>
+                  @for (cat of categories(); track cat.Id) {
+                    <option [value]="cat.Id">{{ cat.Name }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="row">
+                <div class="col-6 mb-3">
+                  <label for="edit-gst" class="form-label small font-weight-bold">GST %</label>
+                  <input id="edit-gst" type="number" class="form-control" formControlName="gst">
+                </div>
+                <div class="col-6 mb-3">
+                  <label for="edit-sellingPrice" class="form-label small font-weight-bold">Price (₹)</label>
+                  <input id="edit-sellingPrice" type="number" class="form-control" formControlName="sellingPrice">
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-6 mb-3">
+                  <label for="edit-unit" class="form-label small font-weight-bold">Unit</label>
+                  <input id="edit-unit" type="text" class="form-control" formControlName="unit">
+                </div>
+                <div class="col-6 mb-3">
+                  <label for="edit-barcode" class="form-label small font-weight-bold">Barcode</label>
+                  <input id="edit-barcode" type="text" class="form-control" formControlName="barcode" placeholder="Optional">
+                </div>
+              </div>
+
+              <!-- Map Attributes Checkbox List inside Edit -->
+              <div class="mb-3">
+                <label class="form-label small font-weight-bold d-block">Associate Characteristics</label>
+                <div class="border rounded p-2 bg-light overflow-auto" style="max-height: 120px;">
+                  @for (val of allAvailableAttributeValues(); track val.Id) {
+                    <div class="form-check">
+                      <input
+                        type="checkbox"
+                        [id]="'edit-val-' + val.Id"
+                        class="form-check-input"
+                        [checked]="selectedMappingValues().includes(val.Id)"
+                        (change)="toggleAttributeValueMapping(val.Id)">
+                      <label [for]="'edit-val-' + val.Id" class="form-check-label small">
+                        <strong>{{ val.attributeName }}</strong>: {{ val.DisplayValue }}
+                      </label>
+                    </div>
+                  } @empty {
+                    <span class="text-muted small">No attribute values configured.</span>
+                  }
+                </div>
+              </div>
+
+              <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-warning flex-grow-1 py-2 font-weight-bold" [disabled]="editProductForm.invalid">
+                  Save Changes
+                </button>
+                <button type="button" class="btn btn-outline-secondary py-2" (click)="cancelEditProduct()">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          }
         </div>
 
         <!-- Products List & Details -->
@@ -145,6 +223,12 @@
                     <td>{{ prod.GST }}%</td>
                     <td>{{ prod.Unit }}</td>
                     <td class="text-end">
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-primary me-1"
+                        (click)="startEditProduct(prod); $event.stopPropagation()">
+                        Edit
+                      </button>
                       <button
                         type="button"
                         class="btn btn-sm btn-outline-danger"
