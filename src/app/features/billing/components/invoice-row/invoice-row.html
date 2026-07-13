@@ -1,13 +1,28 @@
 <td [formGroup]="itemGroup()" class="align-middle position-relative">
-  <input
-    type="text"
-    class="form-control form-control-sm"
-    formControlName="itemName"
-    placeholder="Type product name to search..."
-    autocomplete="off"
-    (input)="onSearchInput($event)"
-    (focus)="onFocus()"
-    (blur)="onBlur()">
+  <div class="input-group input-group-sm">
+    <input
+      type="text"
+      class="form-control"
+      formControlName="itemName"
+      placeholder="Type or click mic to speak..."
+      autocomplete="off"
+      (input)="onSearchInput($event)"
+      (focus)="onFocus()"
+      (blur)="onBlur()">
+    <button
+      type="button"
+      class="btn px-2"
+      [class.btn-danger]="isCurrentlyListening()"
+      [class.btn-outline-secondary]="!isCurrentlyListening()"
+      [title]="isCurrentlyListening() ? 'Listening... Click to stop' : 'Search by Voice'"
+      (click)="triggerMic.emit(); $event.stopPropagation()">
+      @if (isCurrentlyListening()) {
+        🎙️
+      } @else {
+        🎤
+      }
+    </button>
+  </div>
   
   @if (showDropdown() && filteredProducts().length > 0) {
     <ul class="dropdown-menu show position-absolute w-100 shadow border-secondary-subtle overflow-y-auto" style="max-height: 180px; z-index: 1050; left: 0; top: 100%;">

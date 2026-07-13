@@ -124,6 +124,35 @@ export class ProductRepository {
   }
 
   /**
+   * Retrieves all products ordered alphabetically, including all concatenated alias keywords.
+   */
+  public async getAllWithKeywords(): Promise<Array<Product & { keywords: string[] }>> {
+    const sql = `
+      SELECT p.*, GROUP_CONCAT(a.Keyword, ',') as keywordsStr
+      FROM Product p
+      LEFT JOIN ProductAttribute pa ON p.Id = pa.ProductId
+      LEFT JOIN Alias a ON pa.AttributeValueId = a.Id
+      GROUP BY p.Id
+      ORDER BY p.DisplayName ASC;
+    `;
+    const rows = await this.db.query<any>(sql);
+    return rows.map(row => ({
+      Id: row.Id,
+      SKU: row.SKU,
+      CategoryId: row.CategoryId,
+      DisplayName: row.DisplayName,
+      Barcode: row.Barcode,
+      HSNCode: row.HSNCode,
+      GST: row.GST,
+      SellingPrice: row.SellingPrice,
+      Unit: row.Unit,
+      IsActive: row.IsActive,
+      CreatedAt: row.CreatedAt,
+      keywords: row.keywordsStr ? row.keywordsStr.split(',') : []
+    }));
+  }
+
+  /**
    * Retrieves a product details along with its fully resolved attribute configuration details.
    * Joins ProductAttribute, AttributeValue, and Attribute tables.
    */

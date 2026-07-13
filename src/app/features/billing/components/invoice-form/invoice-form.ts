@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, effect } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -8,6 +8,7 @@ import { InvoiceRow } from '../invoice-row/invoice-row';
 import { InvoiceTotals } from '../invoice-totals/invoice-totals';
 import { ProductRepository } from '../../../../core/database/repositories/product';
 import { Product } from '../../../../core/database/models/product.model';
+import { SpeechService } from '../../../../core/speech/services/speech';
 
 /**
  * Controller component for the Billing Form panel.
@@ -25,11 +26,39 @@ export class InvoiceForm implements OnInit, OnDestroy {
   private readonly invoiceService = inject(InvoiceService);
   private readonly pdfService = inject(PdfService);
   private readonly productRepo = inject(ProductRepository);
+  protected readonly speechService = inject(SpeechService);
 
   private readonly destroy$ = new Subject<void>();
 
   protected invoiceForm!: FormGroup;
-  protected readonly availableProducts = signal<Product[]>([]);
+  protected readonly availableProducts = signal<any[]>([]);
+  protected readonly activeMicRowIndex = signal<number | null>(null);
+  protected readonly selectedVoiceLang = signal('en-US');
+
+  constructor() {
+    effect(() => {
+      const activeIdx = this.activeMicRowIndex();
+      if (activeIdx === null) return;
+
+      const state = this.speechService.state();
+      const text = state.finalTranscript || state.transcript;
+
+      if (text) {
+        const group = this.getItemGroup(activeIdx);
+        if (group) {
+          group.get('itemName')?.setValue(text);
+          group.get('itemName')?.updateValueAndValidity({ emitEvent: true });
+        }
+      }
+
+      // Automatically reset listening state once completed or encountered an error
+      if (state.status === 'error' || (state.status === 'idle' && state.finalTranscript)) {
+        setTimeout(() => {
+          this.activeMicRowIndex.set(null);
+        }, 100);
+      }
+    });
+  }
 
   public ngOnInit(): void {
     this.initializeForm();
@@ -146,9 +175,28 @@ export class InvoiceForm implements OnInit, OnDestroy {
     this.addItemRow();
   }
 
+  protected toggleVoiceSearch(index: number): void {
+    const isListening = this.activeMicRowIndex() === index;
+    if (isListening) {
+      this.speechService.stop();
+      this.activeMicRowIndex.set(null);
+    } else {
+      this.speechService.reset();
+      this.speechService.setLanguage(this.selectedVoiceLang());
+      this.activeMicRowIndex.set(index);
+      this.speechService.start();
+    }
+  }
+
+  protected changeVoiceLang(event: Event): void {
+    const lang = (event.target as HTMLSelectElement).value;
+    this.selectedVoiceLang.set(lang);
+    this.speechService.setLanguage(lang);
+  }
+
   private async loadProducts(): Promise<void> {
     try {
-      const list = await this.productRepo.getAll();
+      const list = await this.productRepo.getAllWithKeywords();
       this.availableProducts.set(list);
     } catch (err) {
       console.error('Failed to load products for billing autocomplete:', err);

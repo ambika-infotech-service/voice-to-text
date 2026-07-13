@@ -85,4 +85,47 @@ export class CalculationService {
     
     return convert(rounded).trim() + ' Rupees Only';
   }
+
+  /**
+   * Computes a fuzzy similarity score between two strings using Levenshtein distance.
+   * Returns a score between 0.0 (completely different) and 1.0 (exact match).
+   * Incorporates substring match boosts to prioritize starts-with/contains mappings.
+   */
+  public getFuzzySimilarity(s1: string, s2: string): number {
+    const str1 = s1.toLowerCase().trim();
+    const str2 = s2.toLowerCase().trim();
+
+    if (!str1 || !str2) return 0;
+    if (str1 === str2) return 1.0;
+
+    // Substring containment optimizations
+    if (str2.includes(str1)) {
+      return 0.7 + (str1.length / str2.length) * 0.3;
+    }
+    if (str1.includes(str2)) {
+      return 0.7 + (str2.length / str1.length) * 0.3;
+    }
+
+    const len1 = str1.length;
+    const len2 = str2.length;
+    const dp = Array(len1 + 1).fill(null).map(() => Array(len2 + 1).fill(0));
+
+    for (let i = 0; i <= len1; i++) dp[i][0] = i;
+    for (let j = 0; j <= len2; j++) dp[0][j] = j;
+
+    for (let i = 1; i <= len1; i++) {
+      for (let j = 1; j <= len2; j++) {
+        const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
+        dp[i][j] = Math.min(
+          dp[i - 1][j] + 1,      // Deletion
+          dp[i][j - 1] + 1,      // Insertion
+          dp[i - 1][j - 1] + cost // Substitution
+        );
+      }
+    }
+
+    const distance = dp[len1][len2];
+    const maxLen = Math.max(len1, len2);
+    return (maxLen - distance) / maxLen;
+  }
 }

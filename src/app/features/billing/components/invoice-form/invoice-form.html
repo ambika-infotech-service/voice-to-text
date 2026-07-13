@@ -1,183 +1,162 @@
 <form [formGroup]="invoiceForm" class="invoice-form-container d-flex flex-column gap-3">
-  <!-- Customer & Invoice Metadata Card -->
-  <div class="card shadow-sm border border-light-subtle">
-    <div class="card-header bg-white py-3 border-bottom-0">
-      <h3 class="card-title h6 text-primary text-uppercase font-weight-bold mb-0">Customer & Invoice Details</h3>
-    </div>
-    <div class="card-body pt-0">
-      <div class="row g-3">
-        <!-- Customer Name -->
-        <div class="col-md-6">
-          <label for="customerName" class="form-label small font-weight-bold text-secondary">Customer Name *</label>
-          <input
-            id="customerName"
-            type="text"
-            class="form-control form-control-sm"
-            formControlName="customerName"
-            placeholder="e.g. John Doe">
-          @if (invoiceForm.get('customerName')?.touched && invoiceForm.get('customerName')?.invalid) {
-            <div class="text-danger small mt-1">Name is required (min 3 characters)</div>
-          }
+    <!-- Customer & Invoice Metadata Card -->
+    <div class="card shadow-sm border border-light-subtle">
+        <div class="card-header bg-white py-3 border-bottom-0">
+            <h3 class="card-title h6 text-primary text-uppercase font-weight-bold mb-0">Customer & Invoice Details</h3>
         </div>
+        <div class="card-body pt-0">
+            <div class="row g-3">
+                <!-- Customer Name -->
+                <div class="col-md-6">
+                    <label for="customerName" class="form-label small font-weight-bold text-secondary">Customer Name
+                        *</label>
+                    <input id="customerName" type="text" class="form-control form-control-sm"
+                        formControlName="customerName" placeholder="e.g. John Doe">
+                    @if (invoiceForm.get('customerName')?.touched && invoiceForm.get('customerName')?.invalid) {
+                    <div class="text-danger small mt-1">Name is required (min 3 characters)</div>
+                    }
+                </div>
 
-        <!-- Customer Mobile -->
-        <div class="col-md-6">
-          <label for="customerMobile" class="form-label small font-weight-bold text-secondary">Mobile No. *</label>
-          <input
-            id="customerMobile"
-            type="text"
-            class="form-control form-control-sm"
-            formControlName="customerMobile"
-            placeholder="10-digit number">
-          @if (invoiceForm.get('customerMobile')?.touched && invoiceForm.get('customerMobile')?.invalid) {
-            <div class="text-danger small mt-1">Provide a valid 10-digit mobile number</div>
-          }
-        </div>
+                <!-- Customer Mobile -->
+                <div class="col-md-6">
+                    <label for="customerMobile" class="form-label small font-weight-bold text-secondary">Mobile No.
+                        *</label>
+                    <input id="customerMobile" type="text" class="form-control form-control-sm"
+                        formControlName="customerMobile" placeholder="10-digit number">
+                    @if (invoiceForm.get('customerMobile')?.touched && invoiceForm.get('customerMobile')?.invalid) {
+                    <div class="text-danger small mt-1">Provide a valid 10-digit mobile number</div>
+                    }
+                </div>
 
-        <!-- Customer Address -->
-        <div class="col-12">
-          <label for="customerAddress" class="form-label small font-weight-bold text-secondary">Billing Address</label>
-          <textarea
-            id="customerAddress"
-            rows="2"
-            class="form-control form-control-sm"
-            formControlName="customerAddress"
-            placeholder="Complete address detail..."></textarea>
-        </div>
+                <!-- Customer Address -->
+                <div class="col-12">
+                    <label for="customerAddress" class="form-label small font-weight-bold text-secondary">Billing
+                        Address</label>
+                    <textarea id="customerAddress" rows="2" class="form-control form-control-sm"
+                        formControlName="customerAddress" placeholder="Complete address detail..."></textarea>
+                </div>
 
-        <!-- Invoice Date & No -->
-        <div class="col-md-6">
-          <label for="invoiceNo" class="form-label small font-weight-bold text-secondary">Invoice No. *</label>
-          <input
-            id="invoiceNo"
-            type="text"
-            class="form-control form-control-sm"
-            formControlName="invoiceNo">
-        </div>
-        <div class="col-md-6">
-          <label for="invoiceDate" class="form-label small font-weight-bold text-secondary">Invoice Date *</label>
-          <input
-            id="invoiceDate"
-            type="date"
-            class="form-control form-control-sm"
-            formControlName="invoiceDate">
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Products List Table Grid Card -->
-  <div class="card shadow-sm border border-light-subtle">
-    <div class="card-header bg-white py-3 border-bottom-0 d-flex justify-content-between align-items-center">
-      <h3 class="card-title h6 text-primary text-uppercase font-weight-bold mb-0">Line Items</h3>
-      <button
-        type="button"
-        class="btn btn-sm btn-primary py-1 px-3"
-        (click)="addItemRow()">
-        + Add Item Row
-      </button>
-    </div>
-    <div class="card-body pt-0">
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="table-light text-secondary small">
-            <tr>
-              <th>Item / Product Name *</th>
-              <th style="width: 100px;">Qty *</th>
-              <th style="width: 90px;">Unit *</th>
-              <th style="width: 120px;">Rate (₹) *</th>
-              <th class="text-end" style="width: 130px;">Amount</th>
-              <th class="text-end" style="width: 60px;">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (item of items.controls; track item; let idx = $index) {
-              <tr
-                app-invoice-row
-                [itemGroup]="getItemGroup(idx)"
-                [index]="idx"
-                [availableProducts]="availableProducts()"
-                (deleteRow)="deleteItemRow($event)">
-              </tr>
-            } @empty {
-              <tr>
-                <td colspan="6" class="text-center text-muted py-4">
-                  No items configured. Click "+ Add Item Row" to start adding billing items.
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- Bottom Details & Summary Sheet -->
-  <div class="row g-3">
-    <!-- Notes and Discount Fields -->
-    <div class="col-md-7">
-      <div class="card shadow-sm border border-light-subtle h-100">
-        <div class="card-body d-flex flex-column gap-3">
-          <!-- Discount Field -->
-          <div>
-            <label for="discount" class="form-label small font-weight-bold text-secondary">Discount Amount (₹)</label>
-            <div class="input-group input-group-sm" style="max-width: 250px;">
-              <span class="input-group-text bg-light text-muted">₹</span>
-              <input
-                id="discount"
-                type="number"
-                class="form-control text-end"
-                formControlName="discount"
-                placeholder="0.00">
+                <!-- Invoice Date & No -->
+                <div class="col-md-6">
+                    <label for="invoiceNo" class="form-label small font-weight-bold text-secondary">Invoice No.
+                        *</label>
+                    <input id="invoiceNo" type="text" class="form-control form-control-sm" formControlName="invoiceNo">
+                </div>
+                <div class="col-md-6">
+                    <label for="invoiceDate" class="form-label small font-weight-bold text-secondary">Invoice Date
+                        *</label>
+                    <input id="invoiceDate" type="date" class="form-control form-control-sm"
+                        formControlName="invoiceDate">
+                </div>
             </div>
-            @if (invoiceForm.get('discount')?.touched && invoiceForm.get('discount')?.invalid) {
-              <div class="text-danger small mt-1">Discount must be positive</div>
-            }
-          </div>
-
-          <!-- Invoice Notes / Terms -->
-          <div>
-            <label for="notes" class="form-label small font-weight-bold text-secondary">Invoice Notes / Terms</label>
-            <textarea
-              id="notes"
-              rows="3"
-              class="form-control form-control-sm"
-              formControlName="notes"
-              placeholder="Notes or terms displayed on print footer..."></textarea>
-          </div>
         </div>
-      </div>
     </div>
 
-    <!-- Totals Summary Card -->
-    <div class="col-md-5">
-      <app-invoice-totals></app-invoice-totals>
+    <!-- Products List Table Grid Card -->
+    <div class="card shadow-sm border border-light-subtle">
+        <div
+            class="card-header bg-white py-3 border-bottom-0 d-flex flex-wrap gap-2 justify-content-between align-items-center">
+            <h3 class="card-title h6 text-primary text-uppercase font-weight-bold mb-0">Line Items</h3>
+            <div class="d-flex align-items-center gap-2">
+                <label for="voiceLang" class="small text-secondary mb-0">Voice Language:</label>
+                <select id="voiceLang" class="form-select form-select-sm" style="width: 155px;"
+                    [value]="selectedVoiceLang()" (change)="changeVoiceLang($event)">
+                    <option value="en-US">English</option>
+                    <option value="gu-IN">Gujarati (ગુજરાતી)</option>
+                    <option value="hi-IN">Hindi (हिन्दी)</option>
+                    <option value="gu-IN-hybrid">English-Gujarati</option>
+                    <option value="hi-IN-hybrid">Hinglish</option>
+                </select>
+                <button type="button" class="btn btn-sm btn-primary py-1 px-3" (click)="addItemRow()">
+                    + Add Item Row
+                </button>
+            </div>
+        </div>
+        <div class="card-body pt-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light text-secondary small">
+                        <tr>
+                            <th>Item / Product Name *</th>
+                            <th style="width: 100px;">Qty *</th>
+                            <th style="width: 90px;">Unit *</th>
+                            <th style="width: 120px;">Rate (₹) *</th>
+                            <th class="text-end" style="width: 130px;">Amount</th>
+                            <th class="text-end" style="width: 60px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (item of items.controls; track item; let idx = $index) {
+                        <tr app-invoice-row [itemGroup]="getItemGroup(idx)" [index]="idx"
+                            [availableProducts]="availableProducts()"
+                            [isCurrentlyListening]="activeMicRowIndex() === idx" (triggerMic)="toggleVoiceSearch(idx)"
+                            (deleteRow)="deleteItemRow($event)">
+                        </tr>
+                        } @empty {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                No items configured. Click "+ Add Item Row" to start adding billing items.
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <!-- Action Bar Buttons -->
-  <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm border border-light-subtle mt-2">
-    <button
-      type="button"
-      class="btn btn-outline-secondary px-4 py-2 font-weight-bold"
-      (click)="onReset()">
-      Reset Billing Form
-    </button>
-    <div class="d-flex gap-2">
-      <button
-        type="button"
-        class="btn btn-outline-primary px-4 py-2 font-weight-bold"
-        [disabled]="invoiceForm.invalid"
-        (click)="onPrint()">
-        Print Invoice
-      </button>
-      <button
-        type="button"
-        class="btn btn-primary px-4 py-2 font-weight-bold"
-        [disabled]="invoiceForm.invalid"
-        (click)="onGeneratePdf()">
-        Generate PDF File
-      </button>
+    <!-- Bottom Details & Summary Sheet -->
+    <div class="row g-3">
+        <!-- Notes and Discount Fields -->
+        <div class="col-md-7">
+            <div class="card shadow-sm border border-light-subtle h-100">
+                <div class="card-body d-flex flex-column gap-3">
+                    <!-- Discount Field -->
+                    <div>
+                        <label for="discount" class="form-label small font-weight-bold text-secondary">Discount Amount
+                            (₹)</label>
+                        <div class="input-group input-group-sm" style="max-width: 250px;">
+                            <span class="input-group-text bg-light text-muted">₹</span>
+                            <input id="discount" type="number" class="form-control text-end" formControlName="discount"
+                                placeholder="0.00">
+                        </div>
+                        @if (invoiceForm.get('discount')?.touched && invoiceForm.get('discount')?.invalid) {
+                        <div class="text-danger small mt-1">Discount must be positive</div>
+                        }
+                    </div>
+
+                    <!-- Invoice Notes / Terms -->
+                    <div>
+                        <label for="notes" class="form-label small font-weight-bold text-secondary">Invoice Notes /
+                            Terms</label>
+                        <textarea id="notes" rows="3" class="form-control form-control-sm" formControlName="notes"
+                            placeholder="Notes or terms displayed on print footer..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Totals Summary Card -->
+        <div class="col-md-5">
+            <app-invoice-totals></app-invoice-totals>
+        </div>
     </div>
-  </div>
+
+    <!-- Action Bar Buttons -->
+    <div
+        class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm border border-light-subtle mt-2">
+        <button type="button" class="btn btn-outline-secondary px-4 py-2 font-weight-bold" (click)="onReset()">
+            Reset Billing Form
+        </button>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-primary px-4 py-2 font-weight-bold"
+                [disabled]="invoiceForm.invalid" (click)="onPrint()">
+                Print Invoice
+            </button>
+            <button type="button" class="btn btn-primary px-4 py-2 font-weight-bold" [disabled]="invoiceForm.invalid"
+                (click)="onGeneratePdf()">
+                Generate PDF File
+            </button>
+        </div>
+    </div>
 </form>

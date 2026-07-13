@@ -61,4 +61,15 @@ describe('CalculationService', () => {
     expect(service.convertNumberToWords(100500)).toBe('One Lakh Five Hundred Rupees Only');
     expect(service.convertNumberToWords(15230)).toBe('Fifteen Thousand Two Hundred Thirty Rupees Only');
   });
+
+  it('should compute fuzzy similarity scores accurately using Levenshtein distance', () => {
+    // Exact match
+    expect(service.getFuzzySimilarity('pipe', 'pipe')).toBe(1.0);
+    // Substring contains match
+    expect(service.getFuzzySimilarity('pipe', 'PVC Pipe')).toBeGreaterThan(0.7);
+    // Typo match (contains substring optimization)
+    expect(service.getFuzzySimilarity('pip', 'pipe')).toBeCloseTo(0.925, 3);
+    // Completely different
+    expect(service.getFuzzySimilarity('abc', 'xyz')).toBe(0.0);
+  });
 });
