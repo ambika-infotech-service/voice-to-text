@@ -1,0 +1,29 @@
+/**
+ * Represents a single line item in an invoice.
+ */
+export interface InvoiceItem {
+  itemName: string;
+  quantity: number;
+  unit: string;
+  rate: number;
+  amount: number;
+}
+
+/**
+ * Represents a full customer invoice, including subtotal calculations,
+ * taxes, discounts, and round-offs.
+ */
+export interface Invoice {
+  invoiceNo: string;
+  invoiceDate: string;
+  customerName: string;
+  customerMobile: string;
+  customerAddress: string;
+  notes: string;
+  items: InvoiceItem[];
+  subtotal: number;
+  discount: number;       // Discount amount in Rupees (₹)
+  gst: number;            // GST amount in Rupees (₹) (standard 18% on taxable value)
+  roundOff: number;       // Rounding adjustment (₹) to make grandTotal integer
+  grandTotal: number;     // Grand Total in Rupees (₹)
+}

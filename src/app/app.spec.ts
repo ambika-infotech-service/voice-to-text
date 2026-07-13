@@ -8,6 +8,8 @@ describe('App', () => {
   beforeEach(async () => {
     mockDbService = {
       initialize: vi.fn().mockResolvedValue(undefined),
+      query: vi.fn().mockResolvedValue([]),
+      run: vi.fn().mockResolvedValue({ changes: 1, lastId: 1 })
     };
 
     await TestBed.configureTestingModule({
@@ -33,7 +35,7 @@ describe('App', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     
     // With isDbReady set to true in ngOnInit on successful init,
-    // the layout should render the toggle buttons and app-speech-demo
-    expect(compiled.querySelector('app-speech-demo')).toBeTruthy();
+    // the layout should render the toggle buttons and app-billing-page by default
+    expect(compiled.querySelector('app-billing-page')).toBeTruthy();
   });
 });

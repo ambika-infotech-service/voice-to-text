@@ -1,0 +1,61 @@
+.a4-preview-wrapper {
+  background: #ffffff;
+  color: #212529;
+  font-family: var(--bs-font-monospace);
+  box-sizing: border-box;
+  overflow: hidden;
+  max-width: 100%;
+  margin: 0 auto;
+
+  .xxs-font {
+    font-size: 9px;
+    line-height: 1.2;
+  }
+
+  .small-table {
+    font-size: 10px;
+    
+    th, td {
+      padding: 6px 8px;
+    }
+  }
+
+  .empty-row td {
+    height: 28px;
+    color: transparent;
+    border-color: var(--bs-border-color);
+  }
+
+  .leading-tight {
+    line-height: 1.35;
+  }
+}
+
+// PRINT MEDIA STYLES: 
+// Locks dimensions to standard A4 sheet paper and hides application side controls.
+@media print {
+  // Hide all browser app headers, forms and toggles
+  body * {
+    visibility: hidden;
+  }
+
+  // Display only the A4 invoice preview block
+  #a4-invoice-preview,
+  #a4-invoice-preview * {
+    visibility: visible;
+  }
+
+  #a4-invoice-preview {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 210mm;
+    height: 297mm;
+    margin: 0 !important;
+    padding: 10mm !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+}

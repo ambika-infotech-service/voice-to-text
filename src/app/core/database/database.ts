@@ -44,6 +44,7 @@ export class DatabaseService {
     try {
       // Configure WebAssembly IndexedDB storage context if running on Web
       if (Capacitor.getPlatform() === 'web') {
+        await customElements.whenDefined('jeep-sqlite');
         const jeepSqliteEl = document.querySelector('jeep-sqlite');
         if (jeepSqliteEl) {
           await this.sqlite.initWebStore();

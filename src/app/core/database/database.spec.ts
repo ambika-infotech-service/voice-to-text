@@ -55,6 +55,11 @@ describe('DatabaseService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
+    // Define dummy jeep-sqlite custom element in JSDOM so whenDefined does not hang in tests
+    if (typeof customElements !== 'undefined' && customElements.get('jeep-sqlite') === undefined) {
+      customElements.define('jeep-sqlite', class extends HTMLElement {});
+    }
+
     // Explicitly reset mock spy history to prevent bleed-through between tests
     mockDbInstance.beginTransaction.mockClear();
     mockDbInstance.commitTransaction.mockClear();

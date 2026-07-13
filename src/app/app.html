@@ -1,11 +1,9 @@
-<jeep-sqlite></jeep-sqlite>
-
 <main class="bg-light min-vh-100 py-4">
-  <div class="container">
+  <div class="container-fluid px-md-5">
     <!-- Header Title -->
     <div class="text-center mb-4">
-      <h1 class="h3 font-weight-bold mb-1 text-primary">Hardware Billing Core OS</h1>
-      <p class="text-secondary small">Voice Recognition & Relational SQLite Data Layers</p>
+      <h1 class="h3 font-weight-bold mb-1 text-primary">Hardware Store ERP System</h1>
+      <p class="text-secondary small">Comprehensive Billing, Speech Assistance & Database Management Modules</p>
     </div>
 
     <!-- 1. DATABASE LOADING PHASE -->
@@ -36,11 +34,19 @@
     @if (isDbReady()) {
       <!-- Tab Switcher Navigation -->
       <div class="row justify-content-center mb-4">
-        <div class="col-lg-10">
-          <div class="d-flex justify-content-center bg-white p-2 rounded shadow-sm">
+        <div class="col-lg-8">
+          <div class="d-flex justify-content-center bg-white p-2 rounded shadow-sm gap-2">
             <button
               type="button"
-              class="btn px-4 py-2 font-weight-bold me-2"
+              class="btn flex-grow-1 py-2 font-weight-bold"
+              [class.btn-primary]="activeTab() === 'billing'"
+              [class.btn-light]="activeTab() !== 'billing'"
+              (click)="switchView('billing')">
+              A4 Invoice Generator
+            </button>
+            <button
+              type="button"
+              class="btn flex-grow-1 py-2 font-weight-bold"
               [class.btn-primary]="activeTab() === 'speech'"
               [class.btn-light]="activeTab() !== 'speech'"
               (click)="switchView('speech')">
@@ -48,7 +54,7 @@
             </button>
             <button
               type="button"
-              class="btn px-4 py-2 font-weight-bold"
+              class="btn flex-grow-1 py-2 font-weight-bold"
               [class.btn-primary]="activeTab() === 'database'"
               [class.btn-light]="activeTab() !== 'database'"
               (click)="switchView('database')">
@@ -60,12 +66,19 @@
 
       <!-- Render Views -->
       <div class="row justify-content-center">
-        <div class="col-lg-10">
+        <div class="col-12">
+          @if (activeTab() === 'billing') {
+            <app-billing-page></app-billing-page>
+          }
           @if (activeTab() === 'speech') {
-            <app-speech-demo></app-speech-demo>
+            <div class="col-lg-10 mx-auto">
+              <app-speech-demo></app-speech-demo>
+            </div>
           }
           @if (activeTab() === 'database') {
-            <app-database-demo></app-database-demo>
+            <div class="col-lg-10 mx-auto">
+              <app-database-demo></app-database-demo>
+            </div>
           }
         </div>
       </div>

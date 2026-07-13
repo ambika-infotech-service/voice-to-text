@@ -1,0 +1,170 @@
+<div class="a4-preview-wrapper bg-white shadow rounded border border-light-subtle" id="a4-invoice-preview">
+  <!-- Invoice A4 Sheet Layout -->
+  <div class="a4-page-content p-5 text-dark small font-monospace">
+    
+    <!-- SECTION 1: COMPANY HEADER -->
+    <div class="row pb-3 mb-3 border-bottom border-secondary border-2 align-items-center">
+      <div class="col-8">
+        <!-- Logo Placeholders & Store details -->
+        <div class="d-flex align-items-center gap-3">
+          <div class="company-logo bg-light border border-secondary d-flex align-items-center justify-content-center" style="width: 55px; height: 55px;">
+            <span class="text-muted font-weight-bold" style="font-size: 8px;">LOGO</span>
+          </div>
+          <div>
+            <h2 class="h5 font-weight-bold mb-0 text-primary">SHREE BALAJI HARDWARE & PAINTS</h2>
+            <p class="text-muted mb-0 xxs-font">Pipes, Fitting Accessories, Sanitaryware & Quality Paints</p>
+            <p class="text-secondary mb-0 xxs-font">Plot 42, GIDC Industrial Estate, Sector 2, Gandhinagar, Gujarat - 382028</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-4 text-end">
+        <p class="mb-0 font-weight-bold">TAX INVOICE</p>
+        <p class="text-primary mb-0 xxs-font">GSTIN: <strong>24AAACS1234F1Z5</strong></p>
+        <p class="text-muted mb-0 xxs-font">Mobile: +91 98765 43210</p>
+      </div>
+    </div>
+
+    <!-- SECTION 2: INVOICE METADATA & BILL-TO GRID -->
+    <div class="row mb-4 border border-secondary rounded p-2 bg-light g-2">
+      <!-- Left side: Invoice metadata -->
+      <div class="col-6 border-end border-secondary-subtle">
+        <div class="row">
+          <div class="col-5 text-secondary">Invoice No:</div>
+          <div class="col-7 font-weight-bold"><code>{{ invoice().invoiceNo }}</code></div>
+        </div>
+        <div class="row">
+          <div class="col-5 text-secondary">Date:</div>
+          <div class="col-7 font-weight-bold">{{ invoice().invoiceDate }}</div>
+        </div>
+        <div class="row">
+          <div class="col-5 text-secondary">Place of Supply:</div>
+          <div class="col-7 text-muted">Gujarat (State Code 24)</div>
+        </div>
+      </div>
+
+      <!-- Right side: Customer bill-to info -->
+      <div class="col-6 ps-3">
+        <div class="text-uppercase text-secondary font-weight-bold border-bottom pb-1 mb-1" style="font-size: 9px;">Bill To Customer</div>
+        <div class="font-weight-bold text-dark text-truncate">{{ invoice().customerName || 'Customer Name' }}</div>
+        <div class="text-muted">Mobile: {{ invoice().customerMobile || 'N/A' }}</div>
+        <div class="text-muted text-truncate" style="max-width: 100%;">Addr: {{ invoice().customerAddress || 'Customer Address N/A' }}</div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: PRODUCTS ITEMS TABLE -->
+    <div class="table-responsive mb-4 border border-secondary rounded">
+      <table class="table table-bordered align-middle mb-0 text-dark font-monospace small-table">
+        <thead class="table-secondary border-secondary text-secondary">
+          <tr class="text-center">
+            <th style="width: 5%;">#</th>
+            <th>Item Description</th>
+            <th style="width: 12%;">Qty</th>
+            <th style="width: 10%;">Unit</th>
+            <th style="width: 15%;">Rate (₹)</th>
+            <th style="width: 18%;">Amount (₹)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Live line items list -->
+          @for (item of invoice().items; track item; let idx = $index) {
+            <tr>
+              <td class="text-center text-muted">{{ idx + 1 }}</td>
+              <td class="text-dark">{{ item.itemName || 'Item Name Placeholder' }}</td>
+              <td class="text-end">{{ item.quantity }}</td>
+              <td class="text-center text-secondary">{{ item.unit }}</td>
+              <td class="text-end">₹{{ item.rate | number:'1.2-2' }}</td>
+              <td class="text-end font-weight-bold">₹{{ item.amount | number:'1.2-2' }}</td>
+            </tr>
+          }
+
+          <!-- Empty rows filler to keep sheet height structured -->
+          @for (empty of emptyRows(); track $index) {
+            <tr class="empty-row">
+              <td class="text-muted">&nbsp;</td>
+              <td>&nbsp;</td>
+              <td>&nbsp;</td>
+              <td>&nbsp;</td>
+              <td>&nbsp;</td>
+              <td>&nbsp;</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- SECTION 4: TOTALS SUMMARY SHEET & SIGNATURES -->
+    <div class="row g-3">
+      <!-- Left Column: Payment information, notes and words -->
+      <div class="col-7 d-flex flex-column gap-3">
+        <!-- Amount in Words -->
+        <div class="border rounded p-2 bg-light">
+          <span class="text-secondary d-block mb-1 text-uppercase" style="font-size: 8px;">Amount in Words:</span>
+          <strong class="text-primary text-uppercase font-weight-bold" style="font-size: 9px;">{{ grandTotalWords() }}</strong>
+        </div>
+
+        <!-- Bank Details & QR Placeholder -->
+        <div class="row g-2 align-items-center">
+          <div class="col-8">
+            <div class="border rounded p-2" style="font-size: 9px;">
+              <strong class="text-secondary d-block border-bottom pb-1 mb-1 text-uppercase" style="font-size: 8px;">Bank Transfer Details</strong>
+              <div class="text-muted"><span class="text-secondary">Bank Name:</span> HDFC Bank Ltd</div>
+              <div class="text-muted"><span class="text-secondary">A/c Name:</span> Shree Balaji Hardware</div>
+              <div class="text-muted"><span class="text-secondary">A/c No:</span> 50200012345678</div>
+              <div class="text-muted"><span class="text-secondary">IFSC Code:</span> HDFC0000123</div>
+            </div>
+          </div>
+          <!-- QR Code Placeholder -->
+          <div class="col-4">
+            <div class="border rounded d-flex flex-column align-items-center justify-content-center p-2 text-center" style="height: 75px;">
+              <div class="bg-light border border-secondary" style="width: 40px; height: 40px;"></div>
+              <span class="text-muted mt-1" style="font-size: 7px;">Scan to Pay</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Terms & Notes -->
+        <div class="border rounded p-2 border-light-subtle" style="font-size: 8.5px;">
+          <strong class="text-secondary d-block border-bottom pb-1 mb-1 text-uppercase" style="font-size: 8px;">Terms & Conditions</strong>
+          <p class="text-muted mb-0 leading-tight">{{ invoice().notes }}</p>
+        </div>
+      </div>
+
+      <!-- Right Column: Taxes, Discounts and Totals -->
+      <div class="col-5">
+        <div class="border border-secondary rounded p-2 bg-light">
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-secondary">Subtotal:</span>
+            <span class="text-dark font-weight-bold">₹{{ invoice().subtotal | number:'1.2-2' }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-secondary">Discount:</span>
+            <span class="text-danger">(-) ₹{{ invoice().discount | number:'1.2-2' }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-secondary">CGST (9%):</span>
+            <span class="text-dark">₹{{ (invoice().gst / 2) | number:'1.2-2' }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-secondary">SGST (9%):</span>
+            <span class="text-dark">₹{{ (invoice().gst / 2) | number:'1.2-2' }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2 border-top pt-2">
+            <span class="text-secondary">Round Off:</span>
+            <span class="text-muted">{{ invoice().roundOff >= 0 ? '+' : '' }}₹{{ invoice().roundOff | number:'1.2-2' }}</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center border-top border-secondary border-2 pt-2">
+            <strong class="text-primary text-uppercase">Grand Total:</strong>
+            <strong class="h6 text-primary mb-0 font-weight-bold">₹{{ invoice().grandTotal | number:'1.0-0' }}</strong>
+          </div>
+        </div>
+
+        <!-- Authorized Signatory Spacer Box -->
+        <div class="mt-4 pt-3 text-center border-top border-secondary-subtle">
+          <div class="text-muted mb-2 xxs-font" style="height: 30px;">[Signature Sticker Area]</div>
+          <strong class="text-uppercase text-secondary font-weight-bold xxs-font d-block">Authorized Signatory</strong>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

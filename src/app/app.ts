@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal, CUSTOM_ELEMENTS_SCHEMA } from '@angu
 import { DatabaseService } from './core/database/database';
 import { SpeechDemo } from './core/speech/components/speech-demo/speech-demo';
 import { DatabaseDemo } from './core/database/components/database-demo/database-demo';
+import { BillingPage } from './features/billing/pages/billing-page/billing-page';
 
 /**
  * Root Application component.
@@ -9,7 +10,7 @@ import { DatabaseDemo } from './core/database/components/database-demo/database-
  */
 @Component({
   selector: 'app-root',
-  imports: [SpeechDemo, DatabaseDemo],
+  imports: [SpeechDemo, DatabaseDemo, BillingPage],
   templateUrl: './app.html',
   styleUrl: './app.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
@@ -19,8 +20,8 @@ export class App implements OnInit {
 
   protected readonly title = signal('voice-to-text');
   
-  // App views: 'speech' = Voice Assistant, 'database' = CRUD Data Browser
-  protected readonly activeTab = signal<'speech' | 'database'>('speech');
+  // App views: 'billing' = Invoice Generator, 'speech' = Voice Assistant, 'database' = CRUD Data Browser
+  protected readonly activeTab = signal<'billing' | 'speech' | 'database'>('billing');
 
   // Database loading states
   protected readonly isDbReady = signal(false);
@@ -38,7 +39,7 @@ export class App implements OnInit {
     }
   }
 
-  protected switchView(tab: 'speech' | 'database'): void {
+  protected switchView(tab: 'billing' | 'speech' | 'database'): void {
     this.activeTab.set(tab);
   }
 }
