@@ -1,0 +1,385 @@
+<div class="card shadow-sm">
+  <div class="card-header bg-primary text-white py-3">
+    <h3 class="mb-0 h5">SQLite Database Data Browser & CRUD Dashboard</h3>
+  </div>
+
+  <div class="card-body">
+    <!-- CRUD Navigation Tabs -->
+    <ul class="nav nav-tabs mb-4">
+      <li class="nav-item">
+        <button
+          type="button"
+          class="nav-link"
+          [class.active]="activeCrudTab() === 'products'"
+          (click)="switchTab('products')">
+          Products
+        </button>
+      </li>
+      <li class="nav-item">
+        <button
+          type="button"
+          class="nav-link"
+          [class.active]="activeCrudTab() === 'categories'"
+          (click)="switchTab('categories')">
+          Categories
+        </button>
+      </li>
+      <li class="nav-item">
+        <button
+          type="button"
+          class="nav-link"
+          [class.active]="activeCrudTab() === 'attributes'"
+          (click)="switchTab('attributes')">
+          Attributes & Values
+        </button>
+      </li>
+      <li class="nav-item">
+        <button
+          type="button"
+          class="nav-link"
+          [class.active]="activeCrudTab() === 'aliases'"
+          (click)="switchTab('aliases')">
+          Synonym Aliases
+        </button>
+      </li>
+    </ul>
+
+    <!-- 1. PRODUCTS TAB -->
+    @if (activeCrudTab() === 'products') {
+      <div class="row g-4">
+        <!-- Add Product Form -->
+        <div class="col-lg-4 border-end">
+          <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Add New Product</h4>
+          <form [formGroup]="productForm" (ngSubmit)="addProduct()">
+            <div class="mb-3">
+              <label for="sku" class="form-label small font-weight-bold">SKU Code (Unique)</label>
+              <input id="sku" type="text" class="form-control" formControlName="sku" placeholder="e.g. SUP-PVC-9">
+            </div>
+
+            <div class="mb-3">
+              <label for="displayName" class="form-label small font-weight-bold">Display Name</label>
+              <input id="displayName" type="text" class="form-control" formControlName="displayName" placeholder="e.g. Supreme PVC Pipe 2 Inch">
+            </div>
+
+            <div class="mb-3">
+              <label for="categoryId" class="form-label small font-weight-bold">Category</label>
+              <select id="categoryId" class="form-select" formControlName="categoryId">
+                <option value="" disabled>Select Category</option>
+                @for (cat of categories(); track cat.Id) {
+                  <option [value]="cat.Id">{{ cat.Name }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="row">
+              <div class="col-6 mb-3">
+                <label for="gst" class="form-label small font-weight-bold">GST %</label>
+                <input id="gst" type="number" class="form-control" formControlName="gst">
+              </div>
+              <div class="col-6 mb-3">
+                <label for="sellingPrice" class="form-label small font-weight-bold">Price (₹)</label>
+                <input id="sellingPrice" type="number" class="form-control" formControlName="sellingPrice">
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-6 mb-3">
+                <label for="unit" class="form-label small font-weight-bold">Unit</label>
+                <input id="unit" type="text" class="form-control" formControlName="unit">
+              </div>
+              <div class="col-6 mb-3">
+                <label for="barcode" class="form-label small font-weight-bold">Barcode</label>
+                <input id="barcode" type="text" class="form-control" formControlName="barcode" placeholder="Optional">
+              </div>
+            </div>
+
+            <!-- Map Attributes Checkbox List -->
+            <div class="mb-3">
+              <label class="form-label small font-weight-bold d-block">Associate Characteristics</label>
+              <div class="border rounded p-2 bg-light overflow-auto" style="max-height: 120px;">
+                @for (val of allAvailableAttributeValues(); track val.Id) {
+                  <div class="form-check">
+                    <input
+                      type="checkbox"
+                      [id]="'val-' + val.Id"
+                      class="form-check-input"
+                      [checked]="selectedMappingValues().includes(val.Id)"
+                      (change)="toggleAttributeValueMapping(val.Id)">
+                    <label [for]="'val-' + val.Id" class="form-check-label small">
+                      <strong>{{ val.attributeName }}</strong>: {{ val.DisplayValue }}
+                    </label>
+                  </div>
+                } @empty {
+                  <span class="text-muted small">No attribute values configured. Create them in the attributes tab.</span>
+                }
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2 font-weight-bold" [disabled]="productForm.invalid">
+              Insert Product
+            </button>
+          </form>
+        </div>
+
+        <!-- Products List & Details -->
+        <div class="col-lg-8">
+          <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Products List</h4>
+          <div class="table-responsive mb-4">
+            <table class="table table-hover table-striped align-middle small">
+              <thead class="table-light">
+                <tr>
+                  <th>SKU</th>
+                  <th>Display Name</th>
+                  <th>Price</th>
+                  <th>GST</th>
+                  <th>Unit</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (prod of products(); track prod.Id) {
+                  <tr [class.table-primary]="selectedProductId() === prod.Id" style="cursor: pointer;" (click)="selectProduct(prod.Id!)">
+                    <td><code>{{ prod.SKU }}</code></td>
+                    <td>{{ prod.DisplayName }}</td>
+                    <td>₹{{ prod.SellingPrice }}</td>
+                    <td>{{ prod.GST }}%</td>
+                    <td>{{ prod.Unit }}</td>
+                    <td class="text-end">
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-danger"
+                        (click)="deleteProduct(prod.Id!); $event.stopPropagation()">
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="6" class="text-center text-muted py-3">No products found. Insert one above.</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Product Details Display -->
+          @if (selectedProductDetails()) {
+            <div class="border rounded p-3 bg-light">
+              <h5 class="h6 font-weight-bold mb-2">Mapped Configuration Details</h5>
+              <p class="small mb-2 text-secondary">
+                <strong>SKU:</strong> <code>{{ selectedProductDetails()!.product.SKU }}</code> |
+                <strong>Barcode:</strong> {{ selectedProductDetails()!.product.Barcode || 'None' }}
+              </p>
+              <div class="d-flex flex-wrap gap-2">
+                @for (attr of selectedProductDetails()!.attributes; track attr.attributeName) {
+                  <span class="badge bg-secondary py-1.5 px-3">
+                    {{ attr.attributeName }}: <strong>{{ attr.displayValue }}</strong>
+                  </span>
+                } @empty {
+                  <span class="text-muted small">No characteristics mapped to this product.</span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- 2. CATEGORIES TAB -->
+    @if (activeCrudTab() === 'categories') {
+      <div class="row g-4">
+        <!-- Add Category Form -->
+        <div class="col-md-4 border-end">
+          <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Add Category</h4>
+          <form [formGroup]="categoryForm" (ngSubmit)="addCategory()">
+            <div class="mb-3">
+              <label for="catName" class="form-label small font-weight-bold">Category Name</label>
+              <input id="catName" type="text" class="form-control" formControlName="name" placeholder="e.g. Electrical">
+            </div>
+            <button type="submit" class="btn btn-primary w-100 py-2 font-weight-bold" [disabled]="categoryForm.invalid">
+              Insert Category
+            </button>
+          </form>
+        </div>
+
+        <!-- Categories Table -->
+        <div class="col-md-8">
+          <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Category List</h4>
+          <div class="table-responsive">
+            <table class="table table-hover table-striped align-middle small">
+              <thead class="table-light">
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Created At</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (cat of categories(); track cat.Id) {
+                  <tr>
+                    <td>{{ cat.Id }}</td>
+                    <td>{{ cat.Name }}</td>
+                    <td>{{ cat.CreatedAt }}</td>
+                    <td class="text-end">
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-danger"
+                        (click)="deleteCategory(cat.Id!)">
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="4" class="text-center text-muted py-3">No categories found.</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- 3. ATTRIBUTES & VALUES TAB -->
+    @if (activeCrudTab() === 'attributes') {
+      <div class="row g-4">
+        <!-- Left: Configure Attributes -->
+        <div class="col-md-6 border-end">
+          <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Add Attribute</h4>
+          <form [formGroup]="attributeForm" (ngSubmit)="addAttribute()" class="row g-2 mb-4">
+            <div class="col-7">
+              <input type="text" class="form-control form-control-sm" formControlName="name" placeholder="e.g. Thickness">
+            </div>
+            <div class="col-3">
+              <select class="form-select form-select-sm" formControlName="dataType">
+                <option value="TEXT">TEXT</option>
+                <option value="NUMBER">NUMBER</option>
+              </select>
+            </div>
+            <div class="col-2">
+              <button type="submit" class="btn btn-sm btn-primary w-100" [disabled]="attributeForm.invalid">Add</button>
+            </div>
+          </form>
+
+          <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Attributes List</h4>
+          <div class="list-group">
+            @for (attr of attributes(); track attr.Id) {
+              <button
+                type="button"
+                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                [class.active]="selectedAttributeId() === attr.Id"
+                (click)="selectAttribute(attr.Id!)">
+                {{ attr.Name }}
+                <span class="badge bg-secondary font-weight-normal small">{{ attr.DataType }}</span>
+              </button>
+            } @empty {
+              <div class="text-muted text-center py-2 small">No attributes created.</div>
+            }
+          </div>
+        </div>
+
+        <!-- Right: Configure Mapped Values -->
+        <div class="col-md-6">
+          @if (selectedAttributeId() !== null) {
+            <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Add Value Option</h4>
+            <form [formGroup]="attributeValueForm" (ngSubmit)="addAttributeValue()" class="row g-2 mb-4">
+              <div class="col-9">
+                <input type="text" class="form-control form-control-sm" formControlName="displayValue" placeholder="e.g. 5mm, 10mm">
+              </div>
+              <div class="col-3">
+                <button type="submit" class="btn btn-sm btn-primary w-100" [disabled]="attributeValueForm.invalid">Add Value</button>
+              </div>
+            </form>
+
+            <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Configured Values</h4>
+            <ul class="list-group list-group-flush border rounded p-1 small overflow-auto" style="max-height: 250px;">
+              @for (val of attributeValues(); track val.Id) {
+                <li class="list-group-item py-2 d-flex justify-content-between align-items-center">
+                  {{ val.DisplayValue }}
+                  <code class="small text-muted">{{ val.NormalizedValue }}</code>
+                </li>
+              } @empty {
+                <li class="list-group-item text-muted text-center small py-3">No values configured. Add one above.</li>
+              }
+            </ul>
+          } @else {
+            <div class="alert alert-secondary text-center small my-5">
+              Select an attribute from the left to view/configure its options.
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- 4. ALIAS SYNONYMS TAB -->
+    @if (activeCrudTab() === 'aliases') {
+      <div class="row g-4">
+        <!-- Add Alias Form -->
+        <div class="col-md-4 border-end">
+          <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Add Synonym Alias</h4>
+          <form [formGroup]="aliasForm" (ngSubmit)="addAlias()">
+            <div class="mb-3">
+              <label for="attributeValueId" class="form-label small font-weight-bold">Maps to Option</label>
+              <select id="attributeValueId" class="form-select" formControlName="attributeValueId">
+                <option value="" disabled>Select Option</option>
+                @for (val of allAvailableAttributeValues(); track val.Id) {
+                  <option [value]="val.Id">
+                    {{ val.attributeName }}: {{ val.DisplayValue }}
+                  </option>
+                }
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="keyword" class="form-label small font-weight-bold">Synonym Keyword</label>
+              <input id="keyword" type="text" class="form-control" formControlName="keyword" placeholder="e.g. 1 Inch, 1&quot;, એક ઇંચ">
+              <div class="form-text small">Include translations (Gujarati/Hindi) or shorthand names.</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2 font-weight-bold" [disabled]="aliasForm.invalid">
+              Insert Alias
+            </button>
+          </form>
+        </div>
+
+        <!-- Aliases Table -->
+        <div class="col-md-8">
+          <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Synonyms Registry</h4>
+          <div class="table-responsive">
+            <table class="table table-hover table-striped align-middle small">
+              <thead class="table-light">
+                <tr>
+                  <th>Keyword</th>
+                  <th>Maps to Characteristic</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (al of aliases(); track al.Id) {
+                  <tr>
+                    <td><strong>{{ al.Keyword }}</strong></td>
+                    <td>{{ al.attributeName }}: <code>{{ al.valueName }}</code></td>
+                    <td class="text-end">
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-danger"
+                        (click)="deleteAlias(al.Id!)">
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="3" class="text-center text-muted py-3">No synonyms found. Insert one above.</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

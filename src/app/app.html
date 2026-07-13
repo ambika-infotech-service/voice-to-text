@@ -1,9 +1,74 @@
-<main class="bg-light min-vh-100 py-5">
+<jeep-sqlite></jeep-sqlite>
+
+<main class="bg-light min-vh-100 py-4">
   <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-lg-10">
-        <app-speech-demo></app-speech-demo>
-      </div>
+    <!-- Header Title -->
+    <div class="text-center mb-4">
+      <h1 class="h3 font-weight-bold mb-1 text-primary">Hardware Billing Core OS</h1>
+      <p class="text-secondary small">Voice Recognition & Relational SQLite Data Layers</p>
     </div>
+
+    <!-- 1. DATABASE LOADING PHASE -->
+    @if (!isDbReady() && !dbErrorMsg()) {
+      <div class="row justify-content-center my-5">
+        <div class="col-md-6 text-center">
+          <div class="spinner-border text-primary mb-3" role="status"></div>
+          <p class="text-muted small">Bootstrapping SQLite engine and running migrations...</p>
+        </div>
+      </div>
+    }
+
+    <!-- 2. DATABASE ERROR STATE -->
+    @if (dbErrorMsg()) {
+      <div class="row justify-content-center my-5">
+        <div class="col-md-8">
+          <div class="alert alert-danger shadow-sm" role="alert">
+            <h4 class="alert-heading h5 font-weight-bold mb-2">SQLite Initialization Error</h4>
+            <p class="small mb-3">The application failed to open the persistent local data layer connection.</p>
+            <hr>
+            <code class="small d-block bg-white p-2 border rounded">{{ dbErrorMsg() }}</code>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- 3. MAIN DASHBOARD CONTENT -->
+    @if (isDbReady()) {
+      <!-- Tab Switcher Navigation -->
+      <div class="row justify-content-center mb-4">
+        <div class="col-lg-10">
+          <div class="d-flex justify-content-center bg-white p-2 rounded shadow-sm">
+            <button
+              type="button"
+              class="btn px-4 py-2 font-weight-bold me-2"
+              [class.btn-primary]="activeTab() === 'speech'"
+              [class.btn-light]="activeTab() !== 'speech'"
+              (click)="switchView('speech')">
+              Voice Assistant Demo
+            </button>
+            <button
+              type="button"
+              class="btn px-4 py-2 font-weight-bold"
+              [class.btn-primary]="activeTab() === 'database'"
+              [class.btn-light]="activeTab() !== 'database'"
+              (click)="switchView('database')">
+              Database CRUD Manager
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Render Views -->
+      <div class="row justify-content-center">
+        <div class="col-lg-10">
+          @if (activeTab() === 'speech') {
+            <app-speech-demo></app-speech-demo>
+          }
+          @if (activeTab() === 'database') {
+            <app-database-demo></app-database-demo>
+          }
+        </div>
+      </div>
+    }
   </div>
 </main>
