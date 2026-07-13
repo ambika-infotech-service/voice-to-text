@@ -126,4 +126,33 @@ describe('DatabaseDemoComponent', () => {
     );
     expect(component['isEditingProduct']()).toBe(false);
   });
+
+  it('should populate edit category form and call update repository method on save', async () => {
+    mockCategoryRepo.update = vi.fn().mockResolvedValue(undefined);
+
+    const testCat = {
+      Id: 5,
+      Name: 'Paints',
+      IsActive: 1,
+      CreatedAt: 'then'
+    };
+
+    component['startEditCategory'](testCat);
+
+    expect(component['isEditingCategory']()).toBe(true);
+    expect(component['editCategoryForm'].value).toEqual({
+      id: 5,
+      name: 'Paints'
+    });
+
+    await component['updateCategory']();
+
+    expect(mockCategoryRepo.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        Id: 5,
+        Name: 'Paints'
+      })
+    );
+    expect(component['isEditingCategory']()).toBe(false);
+  });
 });

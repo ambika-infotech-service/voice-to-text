@@ -47,11 +47,13 @@ export class DatabaseDemo implements OnInit {
 
   protected readonly selectedAttributeId = signal<number | null>(null);
 
-  // Edit product mode state
+  // Edit product/category mode state
   protected readonly isEditingProduct = signal(false);
+  protected readonly isEditingCategory = signal(false);
 
   // Form Groups
   protected categoryForm!: FormGroup;
+  protected editCategoryForm!: FormGroup; // Form for editing category
   protected productForm!: FormGroup;
   protected editProductForm!: FormGroup; // Form for editing
   protected attributeForm!: FormGroup;
@@ -70,6 +72,11 @@ export class DatabaseDemo implements OnInit {
 
   private initializeForms(): void {
     this.categoryForm = this.fb.group({
+      name: ['', [Validators.required, Validators.minLength(2)]]
+    });
+
+    this.editCategoryForm = this.fb.group({
+      id: [null, Validators.required],
       name: ['', [Validators.required, Validators.minLength(2)]]
     });
 
@@ -193,6 +200,40 @@ export class DatabaseDemo implements OnInit {
     } catch (err) {
       console.error(err);
       alert('Cannot delete category. Check foreign key constraints.');
+    }
+  }
+
+  protected startEditCategory(cat: Category): void {
+    if (cat.Id === undefined) return;
+    this.editCategoryForm.setValue({
+      id: cat.Id,
+      name: cat.Name
+    });
+    this.isEditingCategory.set(true);
+  }
+
+  protected cancelEditCategory(): void {
+    this.isEditingCategory.set(false);
+    this.editCategoryForm.reset();
+  }
+
+  protected async updateCategory(): Promise<void> {
+    if (this.editCategoryForm.invalid) return;
+
+    try {
+      const val = this.editCategoryForm.value;
+      const category: Category = {
+        Id: Number(val.id),
+        Name: val.name,
+        IsActive: 1,
+        CreatedAt: new Date().toISOString()
+      };
+      await this.categoryRepo.update(category);
+      this.cancelEditCategory();
+      await this.loadAllData();
+    } catch (err) {
+      console.error('Failed to update category name', err);
+      alert('Failed to update category name. Check for duplicate names.');
     }
   }
 

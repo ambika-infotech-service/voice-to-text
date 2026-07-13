@@ -272,18 +272,36 @@
     <!-- 2. CATEGORIES TAB -->
     @if (activeCrudTab() === 'categories') {
       <div class="row g-4">
-        <!-- Add Category Form -->
+        <!-- Add/Edit Category Form -->
         <div class="col-md-4 border-end">
-          <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Add Category</h4>
-          <form [formGroup]="categoryForm" (ngSubmit)="addCategory()">
-            <div class="mb-3">
-              <label for="catName" class="form-label small font-weight-bold">Category Name</label>
-              <input id="catName" type="text" class="form-control" formControlName="name" placeholder="e.g. Electrical">
-            </div>
-            <button type="submit" class="btn btn-primary w-100 py-2 font-weight-bold" [disabled]="categoryForm.invalid">
-              Insert Category
-            </button>
-          </form>
+          @if (!isEditingCategory()) {
+            <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Add Category</h4>
+            <form [formGroup]="categoryForm" (ngSubmit)="addCategory()">
+              <div class="mb-3">
+                <label for="catName" class="form-label small font-weight-bold">Category Name</label>
+                <input id="catName" type="text" class="form-control" formControlName="name" placeholder="e.g. Electrical">
+              </div>
+              <button type="submit" class="btn btn-primary w-100 py-2 font-weight-bold" [disabled]="categoryForm.invalid">
+                Insert Category
+              </button>
+            </form>
+          } @else {
+            <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold text-warning">Edit Category</h4>
+            <form [formGroup]="editCategoryForm" (ngSubmit)="updateCategory()">
+              <div class="mb-3">
+                <label for="edit-catName" class="form-label small font-weight-bold">Category Name</label>
+                <input id="edit-catName" type="text" class="form-control" formControlName="name">
+              </div>
+              <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-warning flex-grow-1 py-2 font-weight-bold" [disabled]="editCategoryForm.invalid">
+                  Save Changes
+                </button>
+                <button type="button" class="btn btn-outline-secondary py-2" (click)="cancelEditCategory()">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          }
         </div>
 
         <!-- Categories Table -->
@@ -306,6 +324,12 @@
                     <td>{{ cat.Name }}</td>
                     <td>{{ cat.CreatedAt }}</td>
                     <td class="text-end">
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-primary me-1"
+                        (click)="startEditCategory(cat)">
+                        Edit
+                      </button>
                       <button
                         type="button"
                         class="btn btn-sm btn-outline-danger"
