@@ -1,9 +1,9 @@
 import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { SpeechDemo } from './core/speech/components/speech-demo/speech-demo';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [SpeechDemo],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
