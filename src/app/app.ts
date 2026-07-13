@@ -19,7 +19,7 @@ export class App implements OnInit {
   private readonly dbService = inject(DatabaseService);
 
   protected readonly title = signal('voice-to-text');
-  
+
   // App views: 'billing' = Invoice Generator, 'speech' = Voice Assistant, 'database' = CRUD Data Browser
   protected readonly activeTab = signal<'billing' | 'speech' | 'database'>('billing');
 

@@ -14,8 +14,9 @@
 
   .small-table {
     font-size: 10px;
-    
-    th, td {
+
+    th,
+    td {
       padding: 6px 8px;
     }
   }
@@ -31,9 +32,10 @@
   }
 }
 
-// PRINT MEDIA STYLES: 
+// PRINT MEDIA STYLES:
 // Locks dimensions to standard A4 sheet paper and hides application side controls.
 @media print {
+
   // Hide all browser app headers, forms and toggles
   body * {
     visibility: hidden;

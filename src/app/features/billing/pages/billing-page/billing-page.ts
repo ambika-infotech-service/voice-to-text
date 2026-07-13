@@ -12,4 +12,4 @@ import { InvoicePreview } from '../../components/invoice-preview/invoice-preview
   templateUrl: './billing-page.html',
   styleUrl: './billing-page.scss'
 })
-export class BillingPage {}
+export class BillingPage { }

@@ -63,7 +63,7 @@ export class InvoiceForm implements OnInit, OnDestroy {
   public ngOnInit(): void {
     this.initializeForm();
     this.setupFormSync();
-    
+
     // Seed with a default product row to ensure a good first-glance user experience
     this.addItemRow();
 
@@ -129,7 +129,7 @@ export class InvoiceForm implements OnInit, OnDestroy {
         const qty = Number(group.get('quantity')?.value || 0);
         const rate = Number(group.get('rate')?.value || 0);
         const amount = Math.round(qty * rate * 100) / 100;
-        
+
         if (group.get('amount')?.value !== amount) {
           group.get('amount')?.setValue(amount, { emitEvent: false });
         }
@@ -145,7 +145,7 @@ export class InvoiceForm implements OnInit, OnDestroy {
         notes: value.notes,
         discount: Number(value.discount || 0)
       });
-      
+
       // 3. Broadcast updated line items
       this.invoiceService.updateInvoiceItems(this.items.value || []);
     });

@@ -13,7 +13,7 @@ export class PdfService {
    */
   public async generateInvoicePdf(elementId: string, filename: string): Promise<void> {
     console.log(`[PdfService] Initiating PDF Export: targeting element #${elementId}, saving as ${filename}.pdf`);
-    
+
     // Future integration template:
     // -------------------------------------------------------------
     // import { jsPDF } from 'jspdf';

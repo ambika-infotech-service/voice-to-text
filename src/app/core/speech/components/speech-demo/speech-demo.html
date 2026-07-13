@@ -1,127 +1,110 @@
 <div class="container py-4">
-  <div class="card shadow-sm">
-    <div class="card-header bg-primary text-white py-3">
-      <h3 class="mb-0 h5">Speech Recognition Module Demo</h3>
-    </div>
-
-    <div class="card-body">
-      <!-- Browser Support Warning -->
-      @if (!isSupported) {
-        <div class="alert alert-danger mb-4" role="alert">
-          <strong>Browser Not Supported:</strong> The Web Speech API is not supported in this browser. Please use Chrome on Desktop or Chrome on Android.
-        </div>
-      }
-
-      <div class="row g-4">
-        <!-- Control Panel -->
-        <div class="col-md-4 border-end">
-          <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Controls</h4>
-
-          <div class="mb-3">
-            <label for="languageSelect" class="form-label font-weight-bold small text-secondary">Recognition Language</label>
-            <select
-              id="languageSelect"
-              class="form-select"
-              [disabled]="speechState().status === 'listening' || !isSupported"
-              (change)="changeLanguage($event)">
-              @for (lang of languages; track lang.code) {
-                <option [value]="lang.code" [selected]="lang.code === speechState().language">
-                  {{ lang.label }}
-                </option>
-              }
-            </select>
-          </div>
-
-          <div class="d-grid gap-2">
-            <button
-              id="btnStart"
-              type="button"
-              class="btn btn-success py-2 font-weight-bold"
-              [disabled]="speechState().status === 'listening' || !isSupported"
-              (click)="start()">
-              Start listening
-            </button>
-
-            <button
-              id="btnStop"
-              type="button"
-              class="btn btn-warning py-2 font-weight-bold"
-              [disabled]="speechState().status !== 'listening'"
-              (click)="stop()">
-              Stop listening
-            </button>
-
-            <button
-              id="btnReset"
-              type="button"
-              class="btn btn-outline-danger py-2 font-weight-bold"
-              [disabled]="!isSupported"
-              (click)="reset()">
-              Reset State
-            </button>
-          </div>
-
-          <hr class="my-4">
-
-          <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Details</h4>
-
-          <ul class="list-group list-group-flush small">
-            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-              Status:
-              <span class="badge py-1.5 px-3" [class]="statusBadgeClass()">
-                {{ speechState().status }}
-              </span>
-            </li>
-            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-              Confidence:
-              <span class="font-weight-bold text-dark">
-                {{ confidencePercentage() }}%
-              </span>
-            </li>
-            <li class="list-group-item d-flex justify-content-between align-items-center px-0 border-bottom-0">
-              Active Language:
-              <span class="font-weight-bold text-dark">
-                {{ speechState().language }}
-              </span>
-            </li>
-          </ul>
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white py-3">
+            <h3 class="mb-0 h5">Speech Recognition Module Demo</h3>
         </div>
 
-        <!-- Transcripts Display -->
-        <div class="col-md-8 d-flex flex-column">
-          <!-- Error Alerts -->
-          @if (speechState().status === 'error') {
-            <div class="alert alert-danger mb-3 py-2 px-3 small border-0 shadow-sm" role="alert">
-              <strong>Error Code:</strong> {{ speechState().error }}<br>
-              {{ speechState().errorMessage }}
+        <div class="card-body">
+            <!-- Browser Support Warning -->
+            @if (!isSupported) {
+            <div class="alert alert-danger mb-4" role="alert">
+                <strong>Browser Not Supported:</strong> The Web Speech API is not supported in this browser. Please use
+                Chrome on Desktop or Chrome on Android.
             </div>
-          }
+            }
 
-          <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Transcription Output</h4>
+            <div class="row g-4">
+                <!-- Control Panel -->
+                <div class="col-md-4 border-end">
+                    <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Controls</h4>
 
-          <div class="flex-grow-1 mb-3">
-            <label for="transcriptBox" class="form-label font-weight-bold small text-secondary">Live Transcription (Interim + Final)</label>
-            <textarea
-              id="transcriptBox"
-              class="form-control bg-light h-100"
-              rows="6"
-              readonly
-              [value]="speechState().transcript || 'Speak or press start...'"
-              [class.text-muted]="!speechState().transcript"></textarea>
-          </div>
+                    <div class="mb-3">
+                        <label for="languageSelect" class="form-label font-weight-bold small text-secondary">Recognition
+                            Language</label>
+                        <select id="languageSelect" class="form-select"
+                            [disabled]="speechState().status === 'listening' || !isSupported"
+                            (change)="changeLanguage($event)">
+                            @for (lang of languages; track lang.code) {
+                            <option [value]="lang.code" [selected]="lang.code === speechState().language">
+                                {{ lang.label }}
+                            </option>
+                            }
+                        </select>
+                    </div>
 
-          <div>
-            <label for="finalTranscriptBox" class="form-label font-weight-bold small text-secondary">Verified Final Text</label>
-            <textarea
-              id="finalTranscriptBox"
-              class="form-control bg-light"
-              rows="3"
-              readonly
-              [value]="speechState().finalTranscript || 'No final text generated yet.'"
-              [class.text-muted]="!speechState().finalTranscript"></textarea>
-          </div>
+                    <div class="d-grid gap-2">
+                        <button id="btnStart" type="button" class="btn btn-success py-2 font-weight-bold"
+                            [disabled]="speechState().status === 'listening' || !isSupported" (click)="start()">
+                            Start listening
+                        </button>
+
+                        <button id="btnStop" type="button" class="btn btn-warning py-2 font-weight-bold"
+                            [disabled]="speechState().status !== 'listening'" (click)="stop()">
+                            Stop listening
+                        </button>
+
+                        <button id="btnReset" type="button" class="btn btn-outline-danger py-2 font-weight-bold"
+                            [disabled]="!isSupported" (click)="reset()">
+                            Reset State
+                        </button>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Details</h4>
+
+                    <ul class="list-group list-group-flush small">
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            Status:
+                            <span class="badge py-1.5 px-3" [class]="statusBadgeClass()">
+                                {{ speechState().status }}
+                            </span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            Confidence:
+                            <span class="font-weight-bold text-dark">
+                                {{ confidencePercentage() }}%
+                            </span>
+                        </li>
+                        <li
+                            class="list-group-item d-flex justify-content-between align-items-center px-0 border-bottom-0">
+                            Active Language:
+                            <span class="font-weight-bold text-dark">
+                                {{ speechState().language }}
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Transcripts Display -->
+                <div class="col-md-8 d-flex flex-column">
+                    <!-- Error Alerts -->
+                    @if (speechState().status === 'error') {
+                    <div class="alert alert-danger mb-3 py-2 px-3 small border-0 shadow-sm" role="alert">
+                        <strong>Error Code:</strong> {{ speechState().error }}<br>
+                        {{ speechState().errorMessage }}
+                    </div>
+                    }
+
+                    <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Transcription Output</h4>
+
+                    <div class="flex-grow-1 mb-3">
+                        <label for="transcriptBox" class="form-label font-weight-bold small text-secondary">Live
+                            Transcription (Interim + Final)</label>
+                        <textarea id="transcriptBox" class="form-control bg-light h-100" rows="6" readonly
+                            [value]="speechState().transcript || 'Speak or press start...'"
+                            [class.text-muted]="!speechState().transcript"></textarea>
+                    </div>
+
+                    <div>
+                        <label for="finalTranscriptBox"
+                            class="form-label font-weight-bold small text-secondary">Verified Final Text</label>
+                        <textarea id="finalTranscriptBox" class="form-control bg-light" rows="3" readonly
+                            [value]="speechState().finalTranscript || 'No final text generated yet.'"
+                            [class.text-muted]="!speechState().finalTranscript"></textarea>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
 </div>

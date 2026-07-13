@@ -39,7 +39,7 @@ export class AliasRepository {
     attributeName: string;
   } | null> {
     const sql = `
-      SELECT al.AttributeValueId as attributeValueId, al.Keyword as keyword, 
+      SELECT al.AttributeValueId as attributeValueId, al.Keyword as keyword,
              av.DisplayValue as displayValue, a.Name as attributeName
       FROM Alias al
       JOIN AttributeValue av ON al.AttributeValueId = av.Id

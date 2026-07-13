@@ -285,7 +285,7 @@ export class DatabaseDemo implements OnInit {
 
   protected async startEditProduct(prod: Product): Promise<void> {
     if (prod.Id === undefined) return;
-    
+
     this.editProductForm.setValue({
       id: prod.Id,
       sku: prod.SKU,

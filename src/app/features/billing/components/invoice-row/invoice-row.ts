@@ -17,7 +17,7 @@ import { CalculationService } from '../../services/calculation.service';
 export class InvoiceRow {
   // Input FormGroup representing this specific invoice item
   public readonly itemGroup = input.required<FormGroup>();
-  
+
   // Index of this row inside the parent FormArray
   public readonly index = input.required<number>();
 
@@ -43,7 +43,7 @@ export class InvoiceRow {
   protected readonly filteredProducts = computed(() => {
     const query = this.searchQuery().toLowerCase().trim();
     if (!query) return [];
-    
+
     const scored = this.availableProducts().map(prod => {
       // 1. Calculate similarity against product Display Name
       let maxScore = this.calcService.getFuzzySimilarity(query, prod.DisplayName || '');

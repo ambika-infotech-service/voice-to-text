@@ -20,9 +20,9 @@ export class InvoicePreview {
 
   // Read-only signal exposing the active invoice data
   protected readonly invoice = this.invoiceService.invoice;
-  
+
   // Computed wording representation of the integer grand total figure
-  protected readonly grandTotalWords = computed(() => 
+  protected readonly grandTotalWords = computed(() =>
     this.calcService.convertNumberToWords(this.invoice().grandTotal)
   );
 
