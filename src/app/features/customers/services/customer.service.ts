@@ -2,7 +2,7 @@ import { Service, inject } from '@angular/core';
 import { CustomerRepository } from '../../../core/database/repositories/customer.repository';
 import { ToastService } from '../../../core/ui/toast/toast.service';
 import { Customer } from '../../../core/database/models/customer.model';
-import { CustomerWorker } from '../../../core/database/models/customer-worker.model';
+import { CustomerContact } from '../../../core/database/models/customer-contact.model';
 
 /**
  * Service managing customer business logic operations, bridging the UI with the repository.
@@ -45,38 +45,38 @@ export class CustomerService {
   }
 
   /**
-   * Fetches workers of a customer.
+   * Fetches contacts of a customer.
    */
-  public async getWorkersByCustomer(customerId: number): Promise<CustomerWorker[]> {
+  public async getContactsByCustomer(customerId: number): Promise<CustomerContact[]> {
     try {
-      return await this.customerRepo.getWorkersByCustomer(customerId);
+      return await this.customerRepo.getContactsByCustomer(customerId);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      this.toast.error(`Failed to load workers: ${msg}`);
+      this.toast.error(`Failed to load contacts: ${msg}`);
       return [];
     }
   }
 
   /**
-   * Reusable API fetching customer along with all their workers.
+   * Reusable API fetching customer along with all their contacts.
    */
-  public async getCustomerWithWorkers(id: number): Promise<{ customer: Customer; workers: CustomerWorker[] } | null> {
+  public async getCustomerWithContacts(id: number): Promise<{ customer: Customer; contacts: CustomerContact[] } | null> {
     try {
-      return await this.customerRepo.getCustomerWithWorkers(id);
+      return await this.customerRepo.getCustomerWithContacts(id);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      this.toast.error(`Failed to load customer with workers: ${msg}`);
+      this.toast.error(`Failed to load customer with contacts: ${msg}`);
       return null;
     }
   }
 
   /**
-   * Creates a new customer with a list of workers in a single transaction.
+   * Creates a new customer with a list of contacts in a single transaction.
    */
-  public async saveCustomerWithWorkers(customer: Customer, workers: CustomerWorker[]): Promise<number> {
+  public async saveCustomerWithContacts(customer: Customer, contacts: CustomerContact[]): Promise<number> {
     try {
-      const customerId = await this.customerRepo.saveCustomerWithWorkers(customer, workers);
-      this.toast.success('Customer and worker records created successfully.');
+      const customerId = await this.customerRepo.saveCustomerWithContacts(customer, contacts);
+      this.toast.success('Customer and contact records created successfully.');
       return customerId;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -86,12 +86,12 @@ export class CustomerService {
   }
 
   /**
-   * Updates an existing customer and maps worker updates/deletes in a single transaction.
+   * Updates an existing customer and maps contact updates/deletes in a single transaction.
    */
-  public async updateCustomerWithWorkers(customer: Customer, workers: CustomerWorker[]): Promise<void> {
+  public async updateCustomerWithContacts(customer: Customer, contacts: CustomerContact[]): Promise<void> {
     try {
-      await this.customerRepo.updateCustomerWithWorkers(customer, workers);
-      this.toast.success('Customer and worker records updated successfully.');
+      await this.customerRepo.updateCustomerWithContacts(customer, contacts);
+      this.toast.success('Customer and contact records updated successfully.');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       this.toast.error(`Failed to update customer details: ${msg}`);
@@ -100,22 +100,22 @@ export class CustomerService {
   }
 
   /**
-   * Registers a single worker associated with a customer.
+   * Registers a single contact associated with a customer.
    */
-  public async createWorker(worker: CustomerWorker): Promise<number> {
+  public async createCustomerContact(contact: CustomerContact): Promise<number> {
     try {
-      const id = await this.customerRepo.createWorker(worker);
-      this.toast.success('Worker contact registered successfully.');
+      const id = await this.customerRepo.createCustomerContact(contact);
+      this.toast.success('Customer contact registered successfully.');
       return id;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      this.toast.error(`Failed to register worker contact: ${msg}`);
+      this.toast.error(`Failed to register customer contact: ${msg}`);
       throw err;
     }
   }
 
   /**
-   * Deletes a customer. Cascade delete removes associated workers in database.
+   * Deletes a customer. Cascade delete removes associated contacts in database.
    */
   public async deleteCustomer(id: number): Promise<boolean> {
     try {
@@ -143,14 +143,14 @@ export class CustomerService {
   }
 
   /**
-   * Reusable worker search utility.
+   * Reusable contact search utility.
    */
-  public async searchWorker(query: string): Promise<CustomerWorker[]> {
+  public async searchCustomerContact(query: string): Promise<CustomerContact[]> {
     try {
-      return await this.customerRepo.searchWorkers(query);
+      return await this.customerRepo.searchCustomerContacts(query);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      this.toast.error(`Worker search failed: ${msg}`);
+      this.toast.error(`Customer contact search failed: ${msg}`);
       return [];
     }
   }

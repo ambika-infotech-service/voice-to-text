@@ -3,13 +3,13 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CustomerService } from '../../services/customer.service';
 import { Customer } from '../../../../core/database/models/customer.model';
-import { CustomerWorker } from '../../../../core/database/models/customer-worker.model';
+import { CustomerContact } from '../../../../core/database/models/customer-contact.model';
 import { ConfirmationDialogService } from '../../../../core/ui/confirmation-dialog/confirmation-dialog.service';
 import { ToastService } from '../../../../core/ui/toast/toast.service';
 
 /**
- * Component displaying full profiles of a customer and lists associated workers.
- * Features inline quick-adding of individual workers.
+ * Component displaying full profiles of a customer and lists associated contacts.
+ * Features inline quick-adding of individual contacts.
  */
 @Component({
   selector: 'app-customer-details',
@@ -27,27 +27,27 @@ export class CustomerDetailsComponent implements OnInit {
 
   // States
   protected readonly customer = signal<Customer | null>(null);
-  protected readonly workers = signal<CustomerWorker[]>([]);
+  protected readonly contacts = signal<CustomerContact[]>([]);
   protected readonly isLoading = signal(true);
 
-  // Quick Add Worker Form
-  protected quickWorkerForm!: FormGroup;
-  protected readonly isAddingWorker = signal(false);
+  // Quick Add Contact Form
+  protected quickContactForm!: FormGroup;
+  protected readonly isAddingContact = signal(false);
   protected readonly isShowQuickAdd = signal(false);
 
   private readonly indianMobileRegex = '^([6-9]\\d{9})?$';
 
   public ngOnInit(): void {
-    this.initializeQuickWorkerForm();
+    this.initializeQuickContactForm();
     this.loadCustomerDetails();
   }
 
   /**
-   * Initializes the quick add worker reactive form controls.
+   * Initializes the quick add contact reactive form controls.
    */
-  private initializeQuickWorkerForm(): void {
-    this.quickWorkerForm = this.fb.group({
-      worker_name: ['', Validators.required],
+  private initializeQuickContactForm(): void {
+    this.quickContactForm = this.fb.group({
+      contact_name: ['', Validators.required],
       mobile: ['', [Validators.pattern(this.indianMobileRegex)]],
       designation: [''],
       notes: ['']
@@ -55,7 +55,7 @@ export class CustomerDetailsComponent implements OnInit {
   }
 
   /**
-   * Fetches customer profile details and its associated workers.
+   * Fetches customer profile details and its associated contacts.
    */
   protected async loadCustomerDetails(): Promise<void> {
     const idParam = this.route.snapshot.paramMap.get('id');
@@ -74,10 +74,10 @@ export class CustomerDetailsComponent implements OnInit {
 
     this.isLoading.set(true);
     try {
-      const result = await this.customerService.getCustomerWithWorkers(id);
+      const result = await this.customerService.getCustomerWithContacts(id);
       if (result) {
         this.customer.set(result.customer);
-        this.workers.set(result.workers);
+        this.contacts.set(result.contacts);
       } else {
         this.toast.error('Customer profile not found.');
         this.router.navigate(['/customers']);
@@ -90,36 +90,36 @@ export class CustomerDetailsComponent implements OnInit {
   }
 
   /**
-   * Toggles the inline quick add worker form.
+   * Toggles the inline quick add contact form.
    */
   protected toggleQuickAdd(): void {
     this.isShowQuickAdd.update(val => !val);
     if (!this.isShowQuickAdd()) {
-      this.quickWorkerForm.reset();
+      this.quickContactForm.reset();
     }
   }
 
   /**
-   * Submits the quick add worker form. Inserts worker record directly to database.
+   * Submits the quick add contact form. Inserts contact record directly to database.
    */
-  protected async onQuickAddWorker(): Promise<void> {
-    if (this.quickWorkerForm.invalid) {
-      this.quickWorkerForm.markAllAsTouched();
-      this.toast.error('Please enter a valid Worker Name.');
+  protected async onQuickAddContact(): Promise<void> {
+    if (this.quickContactForm.invalid) {
+      this.quickContactForm.markAllAsTouched();
+      this.toast.error('Please enter a valid Contact Name.');
       return;
     }
 
     const customerVal = this.customer();
     if (!customerVal || !customerVal.id) return;
 
-    this.isAddingWorker.set(true);
+    this.isAddingContact.set(true);
     try {
-      const formValue = this.quickWorkerForm.value;
+      const formValue = this.quickContactForm.value;
       const timestamp = new Date().toISOString();
 
-      const worker: CustomerWorker = {
+      const contact: CustomerContact = {
         customer_id: customerVal.id,
-        worker_name: formValue.worker_name.trim(),
+        contact_name: formValue.contact_name.trim(),
         mobile: formValue.mobile || null,
         designation: formValue.designation || null,
         notes: formValue.notes || null,
@@ -128,17 +128,17 @@ export class CustomerDetailsComponent implements OnInit {
       };
 
       // Direct save to DB via Service
-      await this.customerService.createWorker(worker);
+      await this.customerService.createCustomerContact(contact);
 
-      this.quickWorkerForm.reset();
+      this.quickContactForm.reset();
       this.isShowQuickAdd.set(false);
       
       // Refresh list
       await this.loadCustomerDetails();
     } catch (err) {
-      console.error('Failed to add worker quickly:', err);
+      console.error('Failed to add contact quickly:', err);
     } finally {
-      this.isAddingWorker.set(false);
+      this.isAddingContact.set(false);
     }
   }
 
@@ -155,7 +155,7 @@ export class CustomerDetailsComponent implements OnInit {
 
     const confirmed = await this.confirmService.confirm({
       title: 'Delete Customer Profile',
-      message: `Are you sure you want to delete the customer "${displayName}"?\nAll associated worker records will be permanently removed. This action is irreversible.`,
+      message: `Are you sure you want to delete the customer "${displayName}"?\nAll associated contact records will be permanently removed. This action is irreversible.`,
       confirmText: 'Delete Profile',
       cancelText: 'Cancel'
     });

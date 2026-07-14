@@ -45,18 +45,28 @@
                 </div>
             </div>
 
-            <!-- Right side: Customer bill-to info -->
+            <!-- Right side: Customer / Contact bill-to info -->
             <div class="col-6 ps-3">
-                <div class="text-uppercase text-secondary font-weight-bold border-bottom pb-1 mb-1"
-                    style="font-size: 9px;">Bill To Customer</div>
-                <div class="font-weight-bold text-dark text-truncate">{{ invoice().customerName || 'Customer Name' }}</div>
-                @if (invoice().companyName) {
-                    <div class="text-secondary font-weight-semibold text-truncate small">{{ invoice().companyName }}</div>
+                @if (invoice().contactId) {
+                    <div class="text-uppercase text-secondary font-weight-bold border-bottom pb-1 mb-1"
+                        style="font-size: 9px;">Bill To Business Contact</div>
+                    <div class="font-weight-bold text-dark text-truncate">{{ invoice().customerName || 'Contact Name' }}</div>
+                    @if (invoice().purchasedBy) {
+                        <div class="text-muted">Roles: <strong>{{ invoice().purchasedBy }}</strong></div>
+                    }
+                    <div class="text-muted">Mobile: {{ invoice().customerMobile || 'N/A' }}</div>
+                    <div class="text-muted text-truncate" style="max-width: 100%;">Addr: {{ invoice().customerAddress || 'N/A' }}</div>
+                } @else {
+                    <div class="text-uppercase text-secondary font-weight-bold border-bottom pb-1 mb-1"
+                        style="font-size: 9px;">Bill To Customer</div>
+                    <div class="font-weight-bold text-dark text-truncate">{{ invoice().customerName || 'Customer Name' }}</div>
+                    @if (invoice().companyName) {
+                        <div class="text-secondary font-weight-semibold text-truncate small">{{ invoice().companyName }}</div>
+                    }
+                    <div class="text-muted">Mobile: {{ invoice().customerMobile || 'N/A' }}</div>
+                    <div class="text-muted">Purchased By: <strong>{{ invoice().purchasedBy || 'Self (Owner)' }}</strong></div>
+                    <div class="text-muted text-truncate" style="max-width: 100%;">Addr: {{ invoice().customerAddress || 'N/A' }}</div>
                 }
-                <div class="text-muted">Mobile: {{ invoice().customerMobile || 'N/A' }}</div>
-                <div class="text-muted">Purchased By: <strong>{{ invoice().purchasedBy || 'Self (Owner)' }}</strong></div>
-                <div class="text-muted text-truncate" style="max-width: 100%;">Addr: {{ invoice().customerAddress ||
-                    'Customer Address N/A' }}</div>
             </div>
         </div>
 

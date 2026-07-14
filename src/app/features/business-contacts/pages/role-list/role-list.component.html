@@ -1,0 +1,151 @@
+<div class="container-fluid py-2">
+    <!-- Breadcrumb -->
+    <div class="mb-3">
+        <a routerLink="/business-contacts" class="text-decoration-none text-muted d-inline-flex align-items-center gap-1.5 small">
+            <i class="bi bi-arrow-left"></i> Back to Business Contacts
+        </a>
+    </div>
+
+    <!-- Title -->
+    <div class="mb-4">
+        <h3 class="font-weight-bold text-dark mb-1">Profession Roles Master</h3>
+        <p class="text-secondary small mb-0">Configure standard customer and business contact roles and professions catalog</p>
+    </div>
+
+    <div class="row g-4">
+        <!-- Roles List Table Panel (Left) -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="card-title font-weight-bold text-dark mb-0">Configured Professions Catalog</h5>
+                </div>
+                <div class="table-responsive">
+                    @if (isLoading()) {
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <p class="text-muted mt-2 small">Loading roles catalog...</p>
+                        </div>
+                    } @else if (roles().length === 0) {
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-gear-wide-connected display-5 d-block mb-3"></i>
+                            <h6 class="font-weight-semibold">No Roles Defined</h6>
+                            <p class="small mb-0">Add standard professions using the configuration card on the right.</p>
+                        </div>
+                    } @else {
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light text-secondary small uppercase">
+                                <tr>
+                                    <th class="ps-4">Role / Profession Name</th>
+                                    <th>Sort Order</th>
+                                    <th>Status</th>
+                                    <th class="text-end pe-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (role of roles(); track role.id) {
+                                    <tr>
+                                        <!-- Role Name -->
+                                        <td class="ps-4">
+                                            <span class="font-weight-semibold text-dark">{{ role.role_name }}</span>
+                                        </td>
+                                        <!-- Sort Order -->
+                                        <td>
+                                            <code class="text-dark bg-light px-2 py-0.5 rounded small">{{ role.display_order }}</code>
+                                        </td>
+                                        <!-- Status -->
+                                        <td>
+                                            @if (role.is_active === 1) {
+                                                <span class="badge bg-success-subtle text-success border px-2 py-1 rounded-pill small">Active</span>
+                                            } @else {
+                                                <span class="badge bg-secondary-subtle text-secondary border px-2 py-1 rounded-pill small">Disabled</span>
+                                            }
+                                        </td>
+                                        <!-- Actions -->
+                                        <td class="text-end pe-4">
+                                            <div class="btn-group gap-1">
+                                                <button type="button" (click)="onEditRole(role)" 
+                                                        class="btn btn-outline-primary btn-sm px-2.5 d-inline-flex align-items-center gap-1"
+                                                        title="Edit Role">
+                                                    <i class="bi bi-pencil-fill"></i> Edit
+                                                </button>
+                                                <button type="button" (click)="onDeleteRole(role)" 
+                                                        class="btn btn-outline-danger btn-sm px-2.5 d-inline-flex align-items-center gap-1"
+                                                        title="Delete Role">
+                                                    <i class="bi bi-trash3-fill"></i> Delete
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Add/Edit Form Card Panel (Right) -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="card-title font-weight-bold text-dark mb-0">
+                        {{ isEditing() ? 'Modify Role Details' : 'Configure New Role' }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form [formGroup]="roleForm" (ngSubmit)="onSubmit()">
+                        <div class="row g-3">
+                            <!-- Role Name -->
+                            <div class="col-12">
+                                <label for="role_name" class="form-label font-weight-semibold text-secondary small">Profession Name *</label>
+                                <input type="text" id="role_name" class="form-control" formControlName="role_name" 
+                                       placeholder="e.g. Mason, Welder, Painter"
+                                       [class.is-invalid]="roleForm.get('role_name')?.touched && roleForm.get('role_name')?.invalid" />
+                                @if (roleForm.get('role_name')?.touched && roleForm.get('role_name')?.errors?.['required']) {
+                                    <div class="invalid-feedback d-block small">Role/Profession name is required.</div>
+                                }
+                            </div>
+
+                            <!-- Display Order -->
+                            <div class="col-md-6">
+                                <label for="display_order" class="form-label font-weight-semibold text-secondary small">Display Sorting Order *</label>
+                                <input type="number" id="display_order" class="form-control" formControlName="display_order" 
+                                       placeholder="e.g. 1"
+                                       [class.is-invalid]="roleForm.get('display_order')?.touched && roleForm.get('display_order')?.invalid" />
+                            </div>
+
+                            <!-- Status -->
+                            <div class="col-md-6">
+                                <label for="is_active" class="form-label font-weight-semibold text-secondary small">Activity Status</label>
+                                <select id="is_active" class="form-select" formControlName="is_active">
+                                    <option [value]="1">Active</option>
+                                    <option [value]="0">Disabled</option>
+                                </select>
+                            </div>
+
+                            <!-- Form Actions -->
+                            <div class="col-12 mt-4 text-end">
+                                <div class="d-flex justify-content-end gap-2">
+                                    @if (isEditing()) {
+                                        <button type="button" class="btn btn-light border px-3 py-2 font-weight-semibold" (click)="onCancelEdit()">
+                                            Cancel
+                                        </button>
+                                    }
+                                    <button type="submit" class="btn btn-primary px-3 py-2 font-weight-semibold shadow-sm d-inline-flex align-items-center gap-1.5"
+                                            [disabled]="isSubmitting()">
+                                        @if (isSubmitting()) {
+                                            <span class="spinner-border spinner-border-sm" role="status"></span>
+                                            Saving...
+                                        } @else {
+                                            <i class="bi bi-check-circle-fill"></i> Save Configuration
+                                        }
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

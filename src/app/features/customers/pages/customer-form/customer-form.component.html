@@ -126,44 +126,44 @@
                 </div>
             </div>
 
-            <!-- Right Column: Associated Workers -->
+            <!-- Right Column: Associated Contacts -->
             <div class="col-lg-5">
                 <div class="card shadow-sm border-0 rounded-3 h-100">
                     <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-                        <h5 class="card-title font-weight-bold text-dark mb-0">Workers / Contacts</h5>
-                        <button type="button" class="btn btn-outline-primary btn-sm font-weight-semibold d-inline-flex align-items-center gap-1" (click)="addWorker()">
-                            <i class="bi bi-plus-lg"></i> Add Worker
+                        <h5 class="card-title font-weight-bold text-dark mb-0">Customer Contacts</h5>
+                        <button type="button" class="btn btn-outline-primary btn-sm font-weight-semibold d-inline-flex align-items-center gap-1" (click)="addContact()">
+                            <i class="bi bi-plus-lg"></i> Add Contact
                         </button>
                     </div>
                     <div class="card-body bg-light-subtle" style="max-height: 480px; overflow-y: auto;">
-                        <div formArrayName="workers">
-                            @if (workers.length === 0) {
+                        <div formArrayName="contacts">
+                            @if (contacts.length === 0) {
                                 <div class="text-center py-5 text-muted">
                                     <i class="bi bi-people display-6 d-block mb-2"></i>
-                                    <p class="small mb-0">No workers configured for this customer yet.</p>
-                                    <button type="button" class="btn btn-sm btn-link font-weight-semibold mt-1" (click)="addWorker()">
-                                        Add First Worker
+                                    <p class="small mb-0">No contacts configured for this customer yet.</p>
+                                    <button type="button" class="btn btn-sm btn-link font-weight-semibold mt-1" (click)="addContact()">
+                                        Add First Contact
                                     </button>
                                 </div>
                             }
 
-                            @for (workerCtrl of workers.controls; track $index) {
+                            @for (contactCtrl of contacts.controls; track $index) {
                                 <div [formGroupName]="$index" class="card shadow-sm border mb-3 rounded-2 p-3 bg-white position-relative">
                                     <button type="button" 
                                             class="btn-close position-absolute top-0 end-0 m-2" 
-                                            aria-label="Remove Worker" 
-                                            (click)="removeWorker($index)">
+                                            aria-label="Remove Contact" 
+                                            (click)="removeContact($index)">
                                     </button>
                                     
                                     <div class="row g-2.5">
-                                        <!-- Worker Name -->
+                                        <!-- Contact Name -->
                                         <div class="col-12 pe-4">
-                                            <label class="form-label font-weight-semibold text-secondary small mb-1">Worker Name <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control form-control-sm" formControlName="worker_name" 
+                                            <label class="form-label font-weight-semibold text-secondary small mb-1">Contact Name <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control form-control-sm" formControlName="contact_name" 
                                                    placeholder="Full name"
-                                                   [class.is-invalid]="workerCtrl.get('worker_name')?.touched && workerCtrl.get('worker_name')?.invalid" />
-                                            @if (workerCtrl.get('worker_name')?.touched && workerCtrl.get('worker_name')?.errors?.['required']) {
-                                                <div class="invalid-feedback d-block small">Worker Name is required.</div>
+                                                   [class.is-invalid]="contactCtrl.get('contact_name')?.touched && contactCtrl.get('contact_name')?.invalid" />
+                                            @if (contactCtrl.get('contact_name')?.touched && contactCtrl.get('contact_name')?.errors?.['required']) {
+                                                <div class="invalid-feedback d-block small">Contact Name is required.</div>
                                             }
                                         </div>
 
@@ -172,8 +172,8 @@
                                             <label class="form-label font-weight-semibold text-secondary small mb-1">Mobile</label>
                                             <input type="text" class="form-control form-control-sm" formControlName="mobile" 
                                                    placeholder="10-digit number"
-                                                   [class.is-invalid]="workerCtrl.get('mobile')?.touched && workerCtrl.get('mobile')?.invalid" />
-                                            @if (workerCtrl.get('mobile')?.touched && workerCtrl.get('mobile')?.errors?.['pattern']) {
+                                                   [class.is-invalid]="contactCtrl.get('mobile')?.touched && contactCtrl.get('mobile')?.invalid" />
+                                            @if (contactCtrl.get('mobile')?.touched && contactCtrl.get('mobile')?.errors?.['pattern']) {
                                                 <div class="invalid-feedback d-block small">Invalid format (10 digits).</div>
                                             }
                                         </div>
@@ -182,12 +182,12 @@
                                         <div class="col-md-6">
                                             <label class="form-label font-weight-semibold text-secondary small mb-1">Designation</label>
                                             <input type="text" class="form-control form-control-sm" formControlName="designation" 
-                                                   placeholder="e.g. Supervisor, Driver" />
+                                                   placeholder="e.g. Supervisor, Purchaser" />
                                         </div>
 
                                         <!-- Notes -->
                                         <div class="col-12">
-                                            <label class="form-label font-weight-semibold text-secondary small mb-1">Worker Notes</label>
+                                            <label class="form-label font-weight-semibold text-secondary small mb-1">Notes / Remarks</label>
                                             <input type="text" class="form-control form-control-sm" formControlName="notes" 
                                                    placeholder="Special comments or instructions..." />
                                         </div>

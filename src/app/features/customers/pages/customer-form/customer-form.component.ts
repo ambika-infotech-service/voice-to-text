@@ -3,7 +3,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { CustomerService } from '../../services/customer.service';
 import { Customer } from '../../../../core/database/models/customer.model';
-import { CustomerWorker } from '../../../../core/database/models/customer-worker.model';
+import { CustomerContact } from '../../../../core/database/models/customer-contact.model';
 import { ToastService } from '../../../../core/ui/toast/toast.service';
 
 /**
@@ -21,7 +21,7 @@ export const companyOrCustomerNameValidator: ValidatorFn = (control: AbstractCon
 
 /**
  * Component for adding and editing customer records.
- * Manages customer information fields and dynamic worker sub-forms in a single reactive FormGroup.
+ * Manages customer information fields and dynamic contact sub-forms in a single reactive FormGroup.
  */
 @Component({
   selector: 'app-customer-form',
@@ -53,7 +53,7 @@ export class CustomerFormComponent implements OnInit {
   }
 
   /**
-   * Initializes the customer and worker subform controls with validation rules.
+   * Initializes the customer and contact subform controls with validation rules.
    */
   private initializeForm(): void {
     this.customerForm = this.fb.group({
@@ -67,36 +67,36 @@ export class CustomerFormComponent implements OnInit {
       state: [''],
       pincode: ['', [Validators.pattern('^(\\d{6})?$')]], // Indian pincode validation (6 digits)
       notes: [''],
-      workers: this.fb.array([])
+      contacts: this.fb.array([])
     }, { validators: companyOrCustomerNameValidator });
   }
 
   /**
-   * Helper returning the FormArray of workers.
+   * Helper returning the FormArray of contacts.
    */
-  protected get workers(): FormArray {
-    return this.customerForm.get('workers') as FormArray;
+  protected get contacts(): FormArray {
+    return this.customerForm.get('contacts') as FormArray;
   }
 
   /**
-   * Adds a new empty worker row to the dynamic worker FormArray.
+   * Adds a new empty contact row to the dynamic contact FormArray.
    */
-  protected addWorker(worker?: CustomerWorker): void {
-    const workerGroup = this.fb.group({
-      id: [worker?.id || null],
-      worker_name: [worker?.worker_name || '', Validators.required],
-      mobile: [worker?.mobile || '', [Validators.pattern(this.indianMobileRegex)]],
-      designation: [worker?.designation || ''],
-      notes: [worker?.notes || '']
+  protected addContact(contact?: CustomerContact): void {
+    const contactGroup = this.fb.group({
+      id: [contact?.id || null],
+      contact_name: [contact?.contact_name || '', Validators.required],
+      mobile: [contact?.mobile || '', [Validators.pattern(this.indianMobileRegex)]],
+      designation: [contact?.designation || ''],
+      notes: [contact?.notes || '']
     });
-    this.workers.push(workerGroup);
+    this.contacts.push(contactGroup);
   }
 
   /**
-   * Removes a worker row at the specified index.
+   * Removes a contact row at the specified index.
    */
-  protected removeWorker(index: number): void {
-    this.workers.removeAt(index);
+  protected removeContact(index: number): void {
+    this.contacts.removeAt(index);
   }
 
   /**
@@ -115,13 +115,13 @@ export class CustomerFormComponent implements OnInit {
   }
 
   /**
-   * Loads customer and associated workers into the form controls.
+   * Loads customer and associated contacts into the form controls.
    */
   private async loadCustomerData(id: number): Promise<void> {
     try {
-      const result = await this.customerService.getCustomerWithWorkers(id);
+      const result = await this.customerService.getCustomerWithContacts(id);
       if (result) {
-        const { customer, workers } = result;
+        const { customer, contacts } = result;
 
         this.customerForm.patchValue({
           company_name: customer.company_name || '',
@@ -136,10 +136,10 @@ export class CustomerFormComponent implements OnInit {
           notes: customer.notes || ''
         });
 
-        // Clear default empty array and populate database worker rows
-        this.workers.clear();
-        for (const worker of workers) {
-          this.addWorker(worker);
+        // Clear default empty array and populate database contact rows
+        this.contacts.clear();
+        for (const contact of contacts) {
+          this.addContact(contact);
         }
       } else {
         this.toast.error('Customer profile not found in database.');
@@ -151,7 +151,7 @@ export class CustomerFormComponent implements OnInit {
   }
 
   /**
-   * Handles form submit. Saves the customer and workers in a single database transaction block.
+   * Handles form submit. Saves the customer and contacts in a single database transaction block.
    */
   protected async onSubmit(): Promise<void> {
     if (this.customerForm.invalid) {
@@ -182,27 +182,26 @@ export class CustomerFormComponent implements OnInit {
         updated_at: timestamp
       };
 
-      // Construct Workers array
-      const workersList: CustomerWorker[] = formValue.workers.map((w: any) => ({
-        id: w.id || undefined,
+      // Construct Contacts array
+      const contactsList: CustomerContact[] = formValue.contacts.map((c: any) => ({
+        id: c.id || undefined,
         customer_id: this.isEditMode() ? this.customerId()! : -1,
-        worker_name: w.worker_name,
-        mobile: w.mobile || null,
-        designation: w.designation || null,
-        notes: w.notes || null,
+        contact_name: c.contact_name,
+        mobile: c.mobile || null,
+        designation: c.designation || null,
+        notes: c.notes || null,
         created_at: timestamp,
         updated_at: timestamp
       }));
 
       if (this.isEditMode()) {
-        await this.customerService.updateCustomerWithWorkers({
+        await this.customerService.updateCustomerWithContacts({
           ...customer,
-          // Retain original created_at timestamp during updates if possible (otherwise standard update)
           created_at: undefined as any // DB updates will ignore created_at column in query anyway
-        }, workersList);
+        }, contactsList);
         this.router.navigate(['/customers', this.customerId()]);
       } else {
-        const newId = await this.customerService.saveCustomerWithWorkers(customer, workersList);
+        const newId = await this.customerService.saveCustomerWithContacts(customer, contactsList);
         this.router.navigate(['/customers', newId]);
       }
     } catch (err: any) {

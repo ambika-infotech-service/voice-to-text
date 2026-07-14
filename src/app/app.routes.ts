@@ -27,5 +27,25 @@ export const routes: Routes = [
   {
     path: 'customers/:id/edit',
     loadComponent: () => import('./features/customers/pages/customer-form/customer-form.component').then(m => m.CustomerFormComponent)
+  },
+  {
+    path: 'business-contacts',
+    loadComponent: () => import('./features/business-contacts/pages/contact-list/contact-list.component').then(m => m.ContactListComponent)
+  },
+  {
+    path: 'business-contacts/roles',
+    loadComponent: () => import('./features/business-contacts/pages/role-list/role-list.component').then(m => m.RoleListComponent)
+  },
+  {
+    path: 'business-contacts/new',
+    loadComponent: () => import('./features/business-contacts/pages/contact-form/contact-form.component').then(m => m.ContactFormComponent)
+  },
+  {
+    path: 'business-contacts/:id',
+    loadComponent: () => import('./features/business-contacts/pages/contact-details/contact-details.component').then(m => m.ContactDetailsComponent)
+  },
+  {
+    path: 'business-contacts/:id/edit',
+    loadComponent: () => import('./features/business-contacts/pages/contact-form/contact-form.component').then(m => m.ContactFormComponent)
   }
 ];

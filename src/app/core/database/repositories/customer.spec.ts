@@ -109,14 +109,14 @@ describe('CustomerRepository', () => {
     );
   });
 
-  it('should run transaction on saveCustomerWithWorkers', async () => {
+  it('should run transaction on saveCustomerWithContacts', async () => {
     const timestamp = '2026-07-14T12:00:00Z';
     mockDbService.run.mockResolvedValueOnce({ changes: 1, lastId: 10 }); // customer insert
-    mockDbService.run.mockResolvedValueOnce({ changes: 1, lastId: 20 }); // worker insert
+    mockDbService.run.mockResolvedValueOnce({ changes: 1, lastId: 20 }); // contact insert
 
-    const customerId = await repository.saveCustomerWithWorkers(
+    const customerId = await repository.saveCustomerWithContacts(
       { customer_name: 'Amit', created_at: timestamp, updated_at: timestamp },
-      [{ customer_id: -1, worker_name: 'Worker 1', created_at: timestamp, updated_at: timestamp }]
+      [{ customer_id: -1, contact_name: 'Contact 1', created_at: timestamp, updated_at: timestamp }]
     );
 
     expect(mockDbService.runTransaction).toHaveBeenCalled();

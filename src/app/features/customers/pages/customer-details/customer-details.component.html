@@ -35,7 +35,7 @@
                         <i class="bi bi-pencil-fill"></i> Edit Customer
                     </a>
                     <button (click)="toggleQuickAdd()" class="btn btn-outline-success px-3 py-2 font-weight-semibold d-inline-flex align-items-center gap-1.5">
-                        <i class="bi bi-person-plus-fill"></i> Add Worker
+                        <i class="bi bi-person-plus-fill"></i> Add Contact
                     </button>
                     <button (click)="deleteCustomer()" class="btn btn-outline-danger px-3 py-2 font-weight-semibold d-inline-flex align-items-center gap-1.5">
                         <i class="bi bi-trash3-fill"></i> Delete Customer
@@ -99,25 +99,25 @@
             </div>
         </div>
 
-        <!-- 2. Quick Add Worker Inline Panel (Toggled) -->
+        <!-- 2. Quick Add Contact Inline Panel (Toggled) -->
         @if (isShowQuickAdd()) {
             <div class="card shadow-sm border-0 rounded-3 mb-4 bg-success-subtle border-start border-4 border-success">
                 <div class="card-header bg-transparent border-0 pt-3 px-4 pb-0 d-flex justify-content-between align-items-center">
-                    <h6 class="font-weight-bold text-success-emphasis mb-0">Quick Add Worker Contacts</h6>
+                    <h6 class="font-weight-bold text-success-emphasis mb-0">Quick Add Contacts</h6>
                     <button type="button" class="btn-close" (click)="toggleQuickAdd()" aria-label="Close"></button>
                 </div>
                 <div class="card-body px-4 pt-2 pb-3">
-                    <form [formGroup]="quickWorkerForm" (ngSubmit)="onQuickAddWorker()">
+                    <form [formGroup]="quickContactForm" (ngSubmit)="onQuickAddContact()">
                         <div class="row g-3 align-items-end">
                             <div class="col-md-3">
-                                <label class="form-label text-success-emphasis font-weight-semibold small mb-1">Worker Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control form-control-sm" formControlName="worker_name" placeholder="Full Name" 
-                                       [class.is-invalid]="quickWorkerForm.get('worker_name')?.touched && quickWorkerForm.get('worker_name')?.invalid" />
+                                <label class="form-label text-success-emphasis font-weight-semibold small mb-1">Contact Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control form-control-sm" formControlName="contact_name" placeholder="Full Name" 
+                                       [class.is-invalid]="quickContactForm.get('contact_name')?.touched && quickContactForm.get('contact_name')?.invalid" />
                             </div>
                             <div class="col-md-2.5">
                                 <label class="form-label text-success-emphasis font-weight-semibold small mb-1">Mobile</label>
                                 <input type="text" class="form-control form-control-sm" formControlName="mobile" placeholder="10-digit number"
-                                       [class.is-invalid]="quickWorkerForm.get('mobile')?.touched && quickWorkerForm.get('mobile')?.invalid" />
+                                       [class.is-invalid]="quickContactForm.get('mobile')?.touched && quickContactForm.get('mobile')?.invalid" />
                             </div>
                             <div class="col-md-2.5">
                                 <label class="form-label text-success-emphasis font-weight-semibold small mb-1">Designation</label>
@@ -130,8 +130,8 @@
                             <div class="col text-end">
                                 <div class="btn-group gap-2">
                                     <button type="button" class="btn btn-sm btn-light font-weight-semibold border" (click)="toggleQuickAdd()">Cancel</button>
-                                    <button type="submit" class="btn btn-sm btn-success font-weight-semibold shadow-sm" [disabled]="isAddingWorker()">
-                                        @if (isAddingWorker()) { Saving... } @else { Add }
+                                    <button type="submit" class="btn btn-sm btn-success font-weight-semibold shadow-sm" [disabled]="isAddingContact()">
+                                        @if (isAddingContact()) { Saving... } @else { Add }
                                     </button>
                                 </div>
                             </div>
@@ -141,52 +141,52 @@
             </div>
         }
 
-        <!-- 3. Workers List Card/Table -->
+        <!-- 3. Contacts List Card/Table -->
         <div class="card shadow-sm border-0 rounded-3">
             <div class="card-header bg-white border-bottom py-3">
-                <h5 class="card-title font-weight-bold text-dark mb-0">Worker Registry & Staff</h5>
+                <h5 class="card-title font-weight-bold text-dark mb-0">Contact Registry & Staff</h5>
             </div>
             <div class="table-responsive">
-                @if (workers().length === 0) {
+                @if (contacts().length === 0) {
                     <div class="text-center py-5 text-muted">
                         <i class="bi bi-people display-5 d-block mb-3"></i>
-                        <h6 class="font-weight-semibold mb-1">No Worker Contacts Registered</h6>
+                        <h6 class="font-weight-semibold mb-1">No Contacts Registered</h6>
                         <p class="small mb-2">There are currently no staff, drivers, or site managers linked to this customer account.</p>
                         <button type="button" class="btn btn-sm btn-outline-success font-weight-semibold" (click)="toggleQuickAdd()">
-                            Link First Worker Account
+                            Add First Contact
                         </button>
                     </div>
                 } @else {
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light text-secondary small uppercase">
                             <tr>
-                                <th class="ps-4">Worker Name</th>
+                                <th class="ps-4">Contact Name</th>
                                 <th>Designation / Role</th>
                                 <th>Mobile Number</th>
-                                <th>Worker Notes</th>
+                                <th>Notes</th>
                                 <th class="text-end pe-4">Status</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @for (worker of workers(); track worker.id) {
+                            @for (contact of contacts(); track contact.id) {
                                 <tr>
-                                    <td class="ps-4 font-weight-semibold text-dark">{{ worker.worker_name }}</td>
+                                    <td class="ps-4 font-weight-semibold text-dark">{{ contact.contact_name }}</td>
                                     <td>
-                                        @if (worker.designation) {
-                                            <span class="badge bg-light text-dark border px-2.5 py-1.5 small">{{ worker.designation }}</span>
+                                        @if (contact.designation) {
+                                            <span class="badge bg-light text-dark border px-2.5 py-1.5 small">{{ contact.designation }}</span>
                                         } @else {
                                             <span class="text-muted small">—</span>
                                         }
                                     </td>
                                     <td>
-                                        @if (worker.mobile) {
-                                            <code class="text-dark bg-light px-2 py-1 rounded small">{{ worker.mobile }}</code>
+                                        @if (contact.mobile) {
+                                            <code class="text-dark bg-light px-2 py-1 rounded small">{{ contact.mobile }}</code>
                                         } @else {
                                             <span class="text-muted small">Not provided</span>
                                         }
                                     </td>
                                     <td>
-                                        <span class="small text-secondary">{{ worker.notes || '—' }}</span>
+                                        <span class="small text-secondary">{{ contact.notes || '—' }}</span>
                                     </td>
                                     <td class="text-end pe-4">
                                         <span class="badge bg-success-subtle text-success border px-2.5 py-1.5 rounded-pill small">Linked</span>

@@ -29,6 +29,6 @@ export interface Customer {
   /** ISO string timestamp when the customer was last updated. */
   readonly updated_at: string;
 
-  /** Virtual field populated during query indicating worker count. */
-  readonly worker_count?: number;
+  /** Virtual field populated during query indicating contact count. */
+  readonly contact_count?: number;
 }

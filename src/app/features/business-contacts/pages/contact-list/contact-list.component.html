@@ -1,0 +1,190 @@
+<div class="card shadow-sm border-0 rounded-3 mb-4">
+    <!-- Header -->
+    <div class="card-header bg-white border-bottom py-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <h4 class="font-weight-bold text-dark mb-1">Business Contacts (Global)</h4>
+            <p class="text-secondary small mb-0">Manage independent professionals, technicians, plumbers, electricians and carpenters</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a routerLink="/business-contacts/roles" class="btn btn-outline-primary px-3 py-2 font-weight-semibold shadow-sm d-inline-flex align-items-center gap-1.5">
+                <i class="bi bi-gear-fill"></i> Role Master
+            </a>
+            <a routerLink="/business-contacts/new" class="btn btn-primary px-3 py-2 font-weight-semibold shadow-sm d-inline-flex align-items-center gap-1.5">
+                <i class="bi bi-person-plus-fill"></i> Add Contact
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="card-body bg-light-subtle border-bottom py-3">
+        <div class="row g-3">
+            <!-- Search Text -->
+            <div class="col-md-5 col-lg-4">
+                <div class="input-group shadow-sm">
+                    <span class="input-group-text bg-white border-end-0 text-muted">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" 
+                           class="form-control border-start-0 ps-0" 
+                           placeholder="Search by name, mobile, city, role..."
+                           [ngModel]="searchText()"
+                           (ngModelChange)="searchText.set($event); onFilterChange()" />
+                </div>
+            </div>
+
+            <!-- Role Filter Dropdown -->
+            <div class="col-md-3">
+                <select class="form-select shadow-sm" 
+                        [ngModel]="selectedRoleId()" 
+                        (ngModelChange)="selectedRoleId.set($event); onFilterChange()">
+                    <option value="">All Professions / Roles</option>
+                    @for (role of roles(); track role.id) {
+                        <option [value]="role.id">{{ role.role_name }}</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Sorting Dropdown -->
+            <div class="col-md-4 col-lg-3 ms-auto text-end">
+                <div class="d-flex align-items-center gap-2 justify-content-end">
+                    <label class="text-secondary small font-weight-semibold text-nowrap mb-0">Sort By:</label>
+                    <select class="form-select shadow-sm" style="max-width: 180px;"
+                            [ngModel]="sortBy()" 
+                            (ngModelChange)="sortBy.set($event); onFilterChange()">
+                        <option value="name">Alphabetical (Name)</option>
+                        <option value="recently_added">Recently Added</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Grid -->
+    <div class="table-responsive">
+        @if (isLoading()) {
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="text-muted mt-2 small">Loading contact records...</p>
+            </div>
+        } @else if (contacts().length === 0) {
+            <div class="text-center py-5">
+                <i class="bi bi-person-lines-fill text-muted display-4 d-block mb-3"></i>
+                <h5 class="text-dark font-weight-bold">No Contacts Found</h5>
+                <p class="text-secondary small">No contacts matching the search criteria exist in the database.</p>
+                @if (searchText().trim() !== '' || selectedRoleId() !== '') {
+                    <button class="btn btn-sm btn-outline-secondary mt-2" (click)="searchText.set(''); selectedRoleId.set(''); fetchData();">
+                        Clear Filters
+                    </button>
+                }
+            </div>
+        } @else {
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light text-secondary small uppercase">
+                    <tr>
+                        <th class="ps-4">Name</th>
+                        <th>Mobile</th>
+                        <th>Roles</th>
+                        <th>City</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (contact of contacts(); track contact.id) {
+                        <tr>
+                            <!-- Name -->
+                            <td class="ps-4">
+                                <span class="font-weight-semibold text-dark">{{ contact.name }}</span>
+                            </td>
+                            <!-- Mobile -->
+                            <td>
+                                @if (contact.mobile) {
+                                    <code class="text-dark bg-light px-2 py-1 rounded small">{{ contact.mobile }}</code>
+                                } @else {
+                                    <span class="text-muted small">N/A</span>
+                                }
+                            </td>
+                            <!-- Mapped Roles Badges -->
+                            <td>
+                                <div class="d-flex flex-wrap gap-1">
+                                    @for (role of contact.roles; track role) {
+                                        <span class="badge bg-primary-subtle text-primary border px-2 py-1 small rounded-pill">
+                                            {{ role }}
+                                        </span>
+                                    } @empty {
+                                        <span class="text-muted small italic">No role linked</span>
+                                    }
+                                </div>
+                            </td>
+                            <!-- City -->
+                            <td>
+                                <span class="small font-weight-medium text-dark">{{ contact.city || '—' }}</span>
+                            </td>
+                            <!-- Status -->
+                            <td>
+                                @if (contact.is_active === 1) {
+                                    <span class="badge bg-success-subtle text-success border rounded-pill px-2.5 py-1.5 small">Active</span>
+                                } @else {
+                                    <span class="badge bg-danger-subtle text-danger border rounded-pill px-2.5 py-1.5 small">Disabled</span>
+                                }
+                            </td>
+                            <!-- Actions -->
+                            <td class="text-end pe-4">
+                                <div class="btn-group gap-1">
+                                    <a [routerLink]="['/business-contacts', contact.id]" 
+                                       class="btn btn-outline-info btn-sm px-2.5 d-inline-flex align-items-center gap-1.5"
+                                       title="View Details">
+                                        <i class="bi bi-eye-fill"></i> View
+                                    </a>
+                                    <a [routerLink]="['/business-contacts', contact.id, 'edit']" 
+                                       class="btn btn-outline-primary btn-sm px-2.5 d-inline-flex align-items-center gap-1.5"
+                                       title="Edit Profile">
+                                        <i class="bi bi-pencil-fill"></i> Edit
+                                    </a>
+                                    <button (click)="deleteContact(contact)" 
+                                            class="btn btn-outline-danger btn-sm px-2.5 d-inline-flex align-items-center gap-1.5"
+                                            title="Delete Contact">
+                                        <i class="bi bi-trash3-fill"></i> Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+
+    <!-- Pagination Footer -->
+    @if (!isLoading() && contacts().length > 0) {
+        <div class="card-footer bg-white border-top py-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <span class="text-secondary small">
+                Showing Page <strong>{{ page() }}</strong> of <strong>{{ totalPages() }}</strong> (Total of {{ totalCount() }} contacts)
+            </span>
+            <nav aria-label="Business contact navigation">
+                <ul class="pagination pagination-sm mb-0">
+                    <!-- Prev -->
+                    <li class="page-item" [class.disabled]="page() === 1">
+                        <button class="page-link py-2 px-3" (click)="setPage(page() - 1)" aria-label="Previous">
+                            <span aria-hidden="true">&laquo; Prev</span>
+                        </button>
+                    </li>
+                    
+                    <!-- Page Numbers -->
+                    @for (p of [].constructor(totalPages()); track $index) {
+                        <li class="page-item" [class.active]="page() === ($index + 1)">
+                            <button class="page-link py-2 px-3" (click)="setPage($index + 1)">{{ $index + 1 }}</button>
+                        </li>
+                    }
+
+                    <!-- Next -->
+                    <li class="page-item" [class.disabled]="page() === totalPages()">
+                        <button class="page-link py-2 px-3" (click)="setPage(page() + 1)" aria-label="Next">
+                            <span aria-hidden="true">Next &raquo;</span>
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    }
+</div>

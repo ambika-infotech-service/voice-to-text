@@ -4,6 +4,7 @@ import { CapacitorSQLite, SQLiteConnection, SQLiteDBConnection } from '@capacito
 import { DB_NAME, DB_VERSION } from './database.constants';
 import { MigrationV1 } from './migrations/migration-v1';
 import { MigrationV2 } from './migrations/migration-v2';
+import { MigrationV3 } from './migrations/migration-v3';
 import { SeedV1 } from './seed/seed-v1';
 
 /**
@@ -18,7 +19,7 @@ export class DatabaseService {
   private isInitialized = false;
   private isTransactionActive = false; // Tracks transaction context state
 
-  private readonly migrations = [MigrationV1, MigrationV2];
+  private readonly migrations = [MigrationV1, MigrationV2, MigrationV3];
   private readonly seeds = [SeedV1];
 
   constructor() {

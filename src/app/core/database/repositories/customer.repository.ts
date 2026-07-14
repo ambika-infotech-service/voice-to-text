@@ -1,7 +1,7 @@
 import { Service, inject } from '@angular/core';
 import { DatabaseService } from '../database';
 import { Customer } from '../models/customer.model';
-import { CustomerWorker } from '../models/customer-worker.model';
+import { CustomerContact } from '../models/customer-contact.model';
 
 /**
  * Helper to normalize mobile fields: empty strings or whitespace are written as null
@@ -14,7 +14,7 @@ function normalizeMobile(m?: string | null): string | null {
 }
 
 /**
- * Repository handling SQLite database operations for the customers and customer_workers tables.
+ * Repository handling SQLite database operations for the customers and customer_contacts tables.
  */
 @Service()
 export class CustomerRepository {
@@ -89,7 +89,7 @@ export class CustomerRepository {
   }
 
   /**
-   * Deletes a customer by ID. Due to CASCADE constraint, associated workers are auto-deleted.
+   * Deletes a customer by ID. Due to CASCADE constraint, associated contacts are auto-deleted.
    * @param id The customer ID.
    */
   public async deleteCustomer(id: number): Promise<void> {
@@ -98,13 +98,13 @@ export class CustomerRepository {
   }
 
   /**
-   * Retrieves a single customer record by ID, including its worker count.
+   * Retrieves a single customer record by ID, including its contact count.
    * @param id The customer ID.
    * @returns The Customer object or null if not found.
    */
   public async getCustomer(id: number): Promise<Customer | null> {
     const sql = `
-      SELECT c.*, (SELECT COUNT(*) FROM customer_workers cw WHERE cw.customer_id = c.id) as worker_count
+      SELECT c.*, (SELECT COUNT(*) FROM customer_contacts cc WHERE cc.customer_id = c.id) as contact_count
       FROM customers c
       WHERE c.id = ? LIMIT 1;
     `;
@@ -152,7 +152,7 @@ export class CustomerRepository {
 
     // Fetch paginated page items
     const querySql = `
-      SELECT c.*, (SELECT COUNT(*) FROM customer_workers cw WHERE cw.customer_id = c.id) as worker_count
+      SELECT c.*, (SELECT COUNT(*) FROM customer_contacts cc WHERE cc.customer_id = c.id) as contact_count
       FROM customers c
       ${whereClause}
       ${orderClause}
@@ -182,7 +182,7 @@ export class CustomerRepository {
     const contains = `%${trimmed}%`;
 
     const sql = `
-      SELECT c.*, (SELECT COUNT(*) FROM customer_workers cw WHERE cw.customer_id = c.id) as worker_count,
+      SELECT c.*, (SELECT COUNT(*) FROM customer_contacts cc WHERE cc.customer_id = c.id) as contact_count,
         CASE
           WHEN LOWER(c.company_name) = LOWER(?) OR LOWER(c.customer_name) = LOWER(?) OR c.mobile = ? OR LOWER(c.gst_number) = LOWER(?) THEN 1
           WHEN c.company_name LIKE ? OR c.customer_name LIKE ? OR c.mobile LIKE ? OR c.gst_number LIKE ? THEN 2
@@ -196,10 +196,6 @@ export class CustomerRepository {
       ORDER BY match_priority ASC, LOWER(COALESCE(NULLIF(c.company_name, ""), c.customer_name)) ASC;
     `;
 
-    // Bind parameters:
-    // Exact: 4 params (company_name, customer_name, mobile, gst_number)
-    // Starts-with: 4 params
-    // Contains: 4 params
     const params = [
       exact, exact, exact, exact, // exact match
       startsWith, startsWith, startsWith, startsWith, // starts with match
@@ -210,39 +206,39 @@ export class CustomerRepository {
   }
 
   /**
-   * Inserts a new worker record for a customer.
-   * @param worker The CustomerWorker object to insert.
+   * Inserts a new customer contact record.
+   * @param contact The CustomerContact object to insert.
    * @returns The generated database primary key ID.
    */
-  public async createWorker(worker: CustomerWorker): Promise<number> {
+  public async createCustomerContact(contact: CustomerContact): Promise<number> {
     const sql = `
-      INSERT INTO customer_workers (
-        customer_id, worker_name, mobile, designation, notes, created_at, updated_at
+      INSERT INTO customer_contacts (
+        customer_id, contact_name, mobile, designation, notes, created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?);
     `;
     const res = await this.db.run(sql, [
-      worker.customer_id,
-      worker.worker_name.trim(),
-      normalizeMobile(worker.mobile),
-      worker.designation?.trim() || null,
-      worker.notes?.trim() || null,
-      worker.created_at,
-      worker.updated_at
+      contact.customer_id,
+      contact.contact_name.trim(),
+      normalizeMobile(contact.mobile),
+      contact.designation?.trim() || null,
+      contact.notes?.trim() || null,
+      contact.created_at,
+      contact.updated_at
     ]);
     return res.lastId ?? -1;
   }
 
   /**
-   * Updates an existing worker record.
-   * @param worker The CustomerWorker object containing updated fields.
+   * Updates an existing customer contact record.
+   * @param contact The CustomerContact object containing updated fields.
    */
-  public async updateWorker(worker: CustomerWorker): Promise<void> {
-    if (worker.id === undefined) {
-      throw new Error('Worker ID must be defined for updates.');
+  public async updateCustomerContact(contact: CustomerContact): Promise<void> {
+    if (contact.id === undefined) {
+      throw new Error('Contact ID must be defined for updates.');
     }
     const sql = `
-      UPDATE customer_workers SET
-        worker_name = ?,
+      UPDATE customer_contacts SET
+        contact_name = ?,
         mobile = ?,
         designation = ?,
         notes = ?,
@@ -250,63 +246,63 @@ export class CustomerRepository {
       WHERE id = ?;
     `;
     await this.db.run(sql, [
-      worker.worker_name.trim(),
-      normalizeMobile(worker.mobile),
-      worker.designation?.trim() || null,
-      worker.notes?.trim() || null,
-      worker.updated_at,
-      worker.id
+      contact.contact_name.trim(),
+      normalizeMobile(contact.mobile),
+      contact.designation?.trim() || null,
+      contact.notes?.trim() || null,
+      contact.updated_at,
+      contact.id
     ]);
   }
 
   /**
-   * Deletes a worker record by ID.
-   * @param id The worker ID.
+   * Deletes a customer contact record by ID.
+   * @param id The contact ID.
    */
-  public async deleteWorker(id: number): Promise<void> {
-    const sql = `DELETE FROM customer_workers WHERE id = ?;`;
+  public async deleteCustomerContact(id: number): Promise<void> {
+    const sql = `DELETE FROM customer_contacts WHERE id = ?;`;
     await this.db.run(sql, [id]);
   }
 
   /**
-   * Fetches all workers associated with a customer.
+   * Fetches all contacts associated with a customer.
    * @param customerId The parent customer ID.
    */
-  public async getWorkersByCustomer(customerId: number): Promise<CustomerWorker[]> {
-    const sql = `SELECT * FROM customer_workers WHERE customer_id = ? ORDER BY worker_name ASC;`;
-    return this.db.query<CustomerWorker>(sql, [customerId]);
+  public async getContactsByCustomer(customerId: number): Promise<CustomerContact[]> {
+    const sql = `SELECT * FROM customer_contacts WHERE customer_id = ? ORDER BY contact_name ASC;`;
+    return this.db.query<CustomerContact>(sql, [customerId]);
   }
 
   /**
-   * Saves a customer and their workers inside a single database transaction block.
+   * Saves a customer and their contacts inside a single database transaction block.
    * @param customer The Customer object (new).
-   * @param workers The list of workers to insert.
+   * @param contacts The list of contacts to insert.
    */
-  public async saveCustomerWithWorkers(customer: Customer, workers: CustomerWorker[]): Promise<number> {
+  public async saveCustomerWithContacts(customer: Customer, contacts: CustomerContact[]): Promise<number> {
     let customerId = -1;
     await this.db.runTransaction(async () => {
       customerId = await this.createCustomer(customer);
       if (customerId === -1) {
         throw new Error('Failed to create customer record inside transaction.');
       }
-      for (const worker of workers) {
-        const workerToSave: CustomerWorker = {
-          ...worker,
+      for (const contact of contacts) {
+        const contactToSave: CustomerContact = {
+          ...contact,
           customer_id: customerId
         };
-        await this.createWorker(workerToSave);
+        await this.createCustomerContact(contactToSave);
       }
     });
     return customerId;
   }
 
   /**
-   * Updates a customer and synchronizes their workers list inside a single database transaction.
-   * Resolves inserts, updates, and deletes of worker records.
+   * Updates a customer and synchronizes their contacts list inside a single database transaction.
+   * Resolves inserts, updates, and deletes of contact records.
    * @param customer The updated Customer object.
-   * @param workers The updated workers array.
+   * @param contacts The updated contacts array.
    */
-  public async updateCustomerWithWorkers(customer: Customer, workers: CustomerWorker[]): Promise<void> {
+  public async updateCustomerWithContacts(customer: Customer, contacts: CustomerContact[]): Promise<void> {
     if (customer.id === undefined) {
       throw new Error('Customer ID must be defined for updates.');
     }
@@ -316,68 +312,68 @@ export class CustomerRepository {
       await this.updateCustomer(customer);
 
       const customerId = customer.id!;
-      // 2. Fetch existing workers from database
-      const existingWorkers = await this.getWorkersByCustomer(customerId);
-      const existingIds = existingWorkers.map(w => w.id!).filter(id => id !== undefined);
+      // 2. Fetch existing contacts from database
+      const existingContacts = await this.getContactsByCustomer(customerId);
+      const existingIds = existingContacts.map(c => c.id!).filter(id => id !== undefined);
 
       // Identify incoming IDs
-      const incomingIds = workers.map(w => w.id!).filter(id => id !== undefined);
+      const incomingIds = contacts.map(c => c.id!).filter(id => id !== undefined);
 
-      // 3. Workers to delete (in existing but not in incoming)
+      // 3. Contacts to delete (in existing but not in incoming)
       const idsToDelete = existingIds.filter(id => !incomingIds.includes(id));
       for (const deleteId of idsToDelete) {
-        await this.deleteWorker(deleteId);
+        await this.deleteCustomerContact(deleteId);
       }
 
-      // 4. Insert or Update incoming workers
-      for (const worker of workers) {
-        if (worker.id !== undefined && existingIds.includes(worker.id)) {
+      // 4. Insert or Update incoming contacts
+      for (const contact of contacts) {
+        if (contact.id !== undefined && existingIds.includes(contact.id)) {
           // Exists -> Update
-          await this.updateWorker(worker);
+          await this.updateCustomerContact(contact);
         } else {
           // New -> Insert
-          const newWorker: CustomerWorker = {
-            ...worker,
+          const newContact: CustomerContact = {
+            ...contact,
             customer_id: customerId
           };
-          await this.createWorker(newWorker);
+          await this.createCustomerContact(newContact);
         }
       }
     });
   }
 
   /**
-   * Reusable API to search workers across all customers by worker_name or mobile.
+   * Reusable API to search contacts across all customers by contact_name or mobile.
    * Useful for invoice generation integration.
    * @param query Search keywords/term.
    */
-  public async searchWorkers(query: string): Promise<Array<CustomerWorker & { parent_customer_name: string; parent_company_name: string | null }>> {
+  public async searchCustomerContacts(query: string): Promise<Array<CustomerContact & { parent_customer_name: string; parent_company_name: string | null }>> {
     const trimmed = query.trim();
     if (trimmed === '') {
       return [];
     }
     const sql = `
-      SELECT cw.*, c.customer_name as parent_customer_name, c.company_name as parent_company_name
-      FROM customer_workers cw
-      JOIN customers c ON cw.customer_id = c.id
-      WHERE cw.worker_name LIKE ? OR cw.mobile LIKE ?
-      ORDER BY cw.worker_name ASC;
+      SELECT cc.*, c.customer_name as parent_customer_name, c.company_name as parent_company_name
+      FROM customer_contacts cc
+      JOIN customers c ON cc.customer_id = c.id
+      WHERE cc.contact_name LIKE ? OR cc.mobile LIKE ?
+      ORDER BY cc.contact_name ASC;
     `;
     const term = `%${trimmed}%`;
     return this.db.query<any>(sql, [term, term]);
   }
 
   /**
-   * Reusable API to fetch a customer along with all their workers.
+   * Reusable API to fetch a customer along with all their contacts.
    * Useful for invoice billing integration.
    * @param id Customer ID.
    */
-  public async getCustomerWithWorkers(id: number): Promise<{ customer: Customer; workers: CustomerWorker[] } | null> {
+  public async getCustomerWithContacts(id: number): Promise<{ customer: Customer; contacts: CustomerContact[] } | null> {
     const customer = await this.getCustomer(id);
     if (!customer) {
       return null;
     }
-    const workers = await this.getWorkersByCustomer(id);
-    return { customer, workers };
+    const contacts = await this.getContactsByCustomer(id);
+    return { customer, contacts };
   }
 }

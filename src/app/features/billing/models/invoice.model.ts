@@ -29,4 +29,9 @@ export interface Invoice {
   gst: number;            // GST amount in Rupees (₹) (standard 18% on taxable value)
   roundOff: number;       // Rounding adjustment (₹) to make grandTotal integer
   grandTotal: number;     // Grand Total in Rupees (₹)
+
+  // Integration fields
+  customerId?: number | null;
+  customerContactId?: number | null;
+  contactId?: number | null;
 }

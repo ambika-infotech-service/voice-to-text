@@ -1,0 +1,191 @@
+<div class="container-fluid py-2">
+    <!-- Breadcrumb -->
+    <div class="mb-3">
+        <a routerLink="/business-contacts" class="text-decoration-none text-muted d-inline-flex align-items-center gap-1.5 small">
+            <i class="bi bi-arrow-left"></i> Back to Business Contacts
+        </a>
+    </div>
+
+    <!-- Title -->
+    <div class="mb-4">
+        <h3 class="font-weight-bold text-dark mb-1">
+            {{ isEditMode() ? 'Edit Business Contact' : 'Add New Business Contact' }}
+        </h3>
+        <p class="text-secondary small mb-0">Fill in details and assign professions/roles for this contact</p>
+    </div>
+
+    <form [formGroup]="contactForm" (ngSubmit)="onSubmit()" class="pb-5">
+        <div class="row g-4">
+            <!-- Left Column: Contact Basic Info -->
+            <div class="col-lg-7">
+                <div class="card shadow-sm border-0 rounded-3 mb-4">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h5 class="card-title font-weight-bold text-dark mb-0">Basic Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <!-- Name -->
+                            <div class="col-12">
+                                <label for="name" class="form-label font-weight-semibold text-secondary small">Contact Name *</label>
+                                <input type="text" id="name" class="form-control" formControlName="name" 
+                                       placeholder="e.g. Ramesh Patel"
+                                       [class.is-invalid]="contactForm.get('name')?.touched && contactForm.get('name')?.invalid" />
+                                @if (contactForm.get('name')?.touched && contactForm.get('name')?.errors?.['required']) {
+                                    <div class="invalid-feedback d-block small">Contact name is required.</div>
+                                }
+                            </div>
+
+                            <!-- Mobile -->
+                            <div class="col-md-6">
+                                <label for="mobile" class="form-label font-weight-semibold text-secondary small">Primary Mobile *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted small">+91</span>
+                                    <input type="text" id="mobile" class="form-control" formControlName="mobile" 
+                                           placeholder="10-digit primary number"
+                                           [class.is-invalid]="contactForm.get('mobile')?.touched && contactForm.get('mobile')?.invalid" />
+                                </div>
+                                @if (contactForm.get('mobile')?.touched && contactForm.get('mobile')?.errors?.['pattern']) {
+                                    <div class="invalid-feedback d-block small">Invalid 10-digit number.</div>
+                                }
+                            </div>
+
+                            <!-- Alternate Mobile -->
+                            <div class="col-md-6">
+                                <label for="alternate_mobile" class="form-label font-weight-semibold text-secondary small">Alternate Mobile</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted small">+91</span>
+                                    <input type="text" id="alternate_mobile" class="form-control" formControlName="alternate_mobile" 
+                                           placeholder="10-digit alternate number"
+                                           [class.is-invalid]="contactForm.get('alternate_mobile')?.touched && contactForm.get('alternate_mobile')?.invalid" />
+                                </div>
+                                @if (contactForm.get('alternate_mobile')?.touched && contactForm.get('alternate_mobile')?.errors?.['pattern']) {
+                                    <div class="invalid-feedback d-block small">Invalid 10-digit number.</div>
+                                }
+                            </div>
+
+                            <!-- Email -->
+                            <div class="col-md-6">
+                                <label for="email" class="form-label font-weight-semibold text-secondary small">Email Address</label>
+                                <input type="email" id="email" class="form-control" formControlName="email" 
+                                       placeholder="e.g. ramesh@example.com"
+                                       [class.is-invalid]="contactForm.get('email')?.touched && contactForm.get('email')?.invalid" />
+                                @if (contactForm.get('email')?.touched && contactForm.get('email')?.errors?.['email']) {
+                                    <div class="invalid-feedback d-block small">Please enter a valid email.</div>
+                                }
+                            </div>
+
+                            <!-- Status -->
+                            <div class="col-md-6">
+                                <label for="is_active" class="form-label font-weight-semibold text-secondary small">Contact Status</label>
+                                <select id="is_active" class="form-select" formControlName="is_active">
+                                    <option [value]="1">Active / Available</option>
+                                    <option [value]="0">Disabled / Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Address card -->
+                <div class="card shadow-sm border-0 rounded-3">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h5 class="card-title font-weight-bold text-dark mb-0">Location & Notes</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <!-- Address -->
+                            <div class="col-12">
+                                <label for="address" class="form-label font-weight-semibold text-secondary small">Address / Locality</label>
+                                <textarea id="address" rows="2" class="form-control" formControlName="address" 
+                                          placeholder="Shop, building, street, locality..."></textarea>
+                            </div>
+
+                            <!-- City -->
+                            <div class="col-md-4">
+                                <label for="city" class="form-label font-weight-semibold text-secondary small">City</label>
+                                <input type="text" id="city" class="form-control" formControlName="city" placeholder="e.g. Gandhinagar" />
+                            </div>
+
+                            <!-- State -->
+                            <div class="col-md-4">
+                                <label for="state" class="form-label font-weight-semibold text-secondary small">State</label>
+                                <input type="text" id="state" class="form-control" formControlName="state" placeholder="e.g. Gujarat" />
+                            </div>
+
+                            <!-- Pincode -->
+                            <div class="col-md-4">
+                                <label for="pincode" class="form-label font-weight-semibold text-secondary small">Pincode</label>
+                                <input type="text" id="pincode" class="form-control" formControlName="pincode" 
+                                       placeholder="6-digit PIN"
+                                       [class.is-invalid]="contactForm.get('pincode')?.touched && contactForm.get('pincode')?.invalid" />
+                                @if (contactForm.get('pincode')?.touched && contactForm.get('pincode')?.errors?.['pattern']) {
+                                    <div class="invalid-feedback d-block small">Pincode must be exactly 6 digits.</div>
+                                }
+                            </div>
+
+                            <!-- Notes -->
+                            <div class="col-12">
+                                <label for="notes" class="form-label font-weight-semibold text-secondary small">Internal Notes / Skills Description</label>
+                                <textarea id="notes" rows="2" class="form-control" formControlName="notes" 
+                                          placeholder="Any experience notes, rating, references or preferences..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Profession Roles Checklist Selection -->
+            <div class="col-lg-5">
+                <div class="card shadow-sm border-0 rounded-3 h-100">
+                    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="card-title font-weight-bold text-dark mb-0">Select Professions / Roles *</h5>
+                    </div>
+                    <div class="card-body bg-light-subtle">
+                        <p class="text-secondary small mb-3">A business contact can have multiple active roles assigned. Select all that apply:</p>
+                        
+                        <div class="border rounded bg-white p-3 shadow-inner" style="max-height: 400px; overflow-y: auto;">
+                            @for (role of roles(); track role.id) {
+                                <div class="form-check py-2 border-bottom border-light-subtle">
+                                    <input class="form-check-input ms-0 me-2.5 cursor-pointer" 
+                                           type="checkbox" 
+                                           [id]="'role_' + role.id"
+                                           [checked]="isRoleChecked(role.id!)"
+                                           (change)="onRoleToggle(role.id!, $event)">
+                                    <label class="form-check-label font-weight-medium text-dark cursor-pointer select-none" [for]="'role_' + role.id">
+                                        {{ role.role_name }}
+                                    </label>
+                                </div>
+                            } @empty {
+                                <div class="text-center py-4 text-muted small">
+                                    No active roles configured. Go to <a routerLink="/business-contacts/roles" class="text-primary font-weight-semibold">Role Master</a> to add professions.
+                                </div>
+                            }
+                        </div>
+
+                        @if (selectedRoleIds().length === 0 && contactForm.touched) {
+                            <div class="text-danger small mt-2">
+                                <i class="bi bi-exclamation-circle-fill"></i> Please select at least one profession / role.
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Actions Footer -->
+        <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
+            <a [routerLink]="isEditMode() ? ['/business-contacts', contactId()] : ['/business-contacts']" class="btn btn-light px-4 py-2 font-weight-semibold border">
+                Cancel
+            </a>
+            <button type="submit" class="btn btn-primary px-4 py-2 font-weight-semibold shadow-sm d-inline-flex align-items-center gap-2" 
+                    [disabled]="isSubmitting() || (selectedRoleIds().length === 0)">
+                @if (isSubmitting()) {
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    Saving...
+                } @else {
+                    <i class="bi bi-check-circle-fill"></i> Save Details
+                }
+            </button>
+        </div>
+    </form>
+</div>

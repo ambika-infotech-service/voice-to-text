@@ -3,7 +3,7 @@
     <div class="card-header bg-white border-bottom py-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
         <div>
             <h4 class="font-weight-bold text-dark mb-1">Customer Management</h4>
-            <p class="text-secondary small mb-0">Browse, filter, search, and manage your customer and partner worker accounts</p>
+            <p class="text-secondary small mb-0">Browse, filter, search, and manage customer contact profiles</p>
         </div>
         <div>
             <a routerLink="/customers/new" class="btn btn-primary px-4 py-2 font-weight-semibold shadow-sm d-inline-flex align-items-center gap-2">
@@ -69,7 +69,7 @@
                         <th class="ps-4">Company Name</th>
                         <th>Customer Name</th>
                         <th>Mobile Number</th>
-                        <th>Workers</th>
+                        <th>Contacts</th>
                         <th>GST Number</th>
                         <th class="text-end pe-4">Actions</th>
                     </tr>
@@ -100,7 +100,7 @@
                             <!-- Workers Count Badge -->
                             <td>
                                 <span class="badge bg-secondary-subtle text-secondary border px-2.5 py-1.5 rounded-pill small">
-                                    {{ customer.worker_count ?? 0 }} worker(s)
+                                    {{ customer.contact_count ?? 0 }} contact(s)
                                 </span>
                             </td>
                             <!-- GSTIN -->

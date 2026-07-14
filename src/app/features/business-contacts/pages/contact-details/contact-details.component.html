@@ -1,0 +1,148 @@
+<div class="container-fluid py-2">
+    <!-- Back Button -->
+    <div class="mb-3">
+        <a routerLink="/business-contacts" class="text-decoration-none text-muted d-inline-flex align-items-center gap-1.5 small">
+            <i class="bi bi-arrow-left"></i> Back to Contacts List
+        </a>
+    </div>
+
+    @if (isLoading()) {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="text-muted mt-2 small">Loading business contact profile...</p>
+        </div>
+    } @else if (contact(); as c) {
+        <!-- Profile Card -->
+        <div class="card shadow-sm border-0 rounded-3 mb-4">
+            <div class="card-header bg-white border-bottom py-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-primary-subtle text-primary p-2.5 rounded-3 d-none d-sm-block">
+                        <i class="bi bi-person-badge-fill fs-4"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-weight-bold text-dark mb-1">{{ c.name }}</h4>
+                        <p class="text-secondary small mb-0">Independent Contractor / Professional</p>
+                    </div>
+                </div>
+                <div class="btn-group gap-2">
+                    <a [routerLink]="['/business-contacts', c.id, 'edit']" class="btn btn-primary px-3 py-2 font-weight-semibold d-inline-flex align-items-center gap-1.5 shadow-sm">
+                        <i class="bi bi-pencil-fill"></i> Edit Contact
+                    </a>
+                    <button (click)="deleteContact()" class="btn btn-outline-danger px-3 py-2 font-weight-semibold d-inline-flex align-items-center gap-1.5">
+                        <i class="bi bi-trash3-fill"></i> Delete Contact
+                    </button>
+                </div>
+            </div>
+
+            <!-- Profile Info Body -->
+            <div class="card-body">
+                <div class="row g-4">
+                    <!-- Mobile -->
+                    <div class="col-md-6 col-lg-3">
+                        <span class="text-secondary d-block small font-weight-semibold mb-1">Primary Mobile</span>
+                        @if (c.mobile) {
+                            <code class="text-dark bg-light px-2 py-1 rounded fs-6">{{ c.mobile }}</code>
+                        } @else {
+                            <span class="text-muted small">Not provided</span>
+                        }
+                    </div>
+
+                    <!-- Alternate Mobile -->
+                    <div class="col-md-6 col-lg-3">
+                        <span class="text-secondary d-block small font-weight-semibold mb-1">Alternate Mobile</span>
+                        @if (c.alternate_mobile) {
+                            <code class="text-dark bg-light px-2 py-1 rounded fs-6">{{ c.alternate_mobile }}</code>
+                        } @else {
+                            <span class="text-muted small">Not provided</span>
+                        }
+                    </div>
+
+                    <!-- Email -->
+                    <div class="col-md-6 col-lg-3">
+                        <span class="text-secondary d-block small font-weight-semibold mb-1">Email Address</span>
+                        @if (c.email) {
+                            <a href="mailto:{{ c.email }}" class="text-decoration-none text-dark fs-6">{{ c.email }}</a>
+                        } @else {
+                            <span class="text-muted small">Not provided</span>
+                        }
+                    </div>
+
+                    <!-- Status -->
+                    <div class="col-md-6 col-lg-3">
+                        <span class="text-secondary d-block small font-weight-semibold mb-1">Status</span>
+                        @if (c.is_active === 1) {
+                            <span class="badge bg-success-subtle text-success border px-2.5 py-1.5 rounded-pill small">Active / Available</span>
+                        } @else {
+                            <span class="badge bg-danger-subtle text-danger border px-2.5 py-1.5 rounded-pill small">Inactive / Disabled</span>
+                        }
+                    </div>
+
+                    <!-- Professions/Roles -->
+                    <div class="col-12 border-top pt-4">
+                        <span class="text-secondary d-block small font-weight-semibold mb-2">Registered Professions / Roles</span>
+                        <div class="d-flex flex-wrap gap-2">
+                            @for (role of c.roles; track role) {
+                                <span class="badge bg-primary-subtle text-primary border px-3 py-2 fs-6 rounded-pill">
+                                    <i class="bi bi-briefcase-fill me-1"></i> {{ role }}
+                                </span>
+                            } @empty {
+                                <span class="text-muted small">No profession roles registered.</span>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Address -->
+                    <div class="col-md-8 col-lg-6 border-top pt-4">
+                        <span class="text-secondary d-block small font-weight-semibold mb-1">Billing / Primary Address</span>
+                        @if (c.address || c.city || c.state) {
+                            <div class="text-dark fs-6">
+                                {{ c.address }}<br>
+                                {{ c.city }}{{ c.city && c.state ? ', ' : '' }}{{ c.state }}
+                                @if (c.pincode) { - {{ c.pincode }} }
+                            </div>
+                        } @else {
+                            <span class="text-muted small">No address recorded</span>
+                        }
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="col-md-4 col-lg-6 border-top pt-4">
+                        <span class="text-secondary d-block small font-weight-semibold mb-1">Internal Notes & Skills Description</span>
+                        <p class="text-dark small mb-0" style="white-space: pre-line;">{{ c.notes || 'No remarks recorded.' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Future-Ready: Invoice History Placeholder Card -->
+        <div class="card shadow-sm border-0 rounded-3 border-start border-4 border-info bg-info-subtle">
+            <div class="card-body p-4">
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="text-info fs-3 leading-none">
+                        <i class="bi bi-info-circle-fill"></i>
+                    </div>
+                    <div>
+                        <h5 class="font-weight-bold text-info-emphasis mb-1">Future Ready Integrations</h5>
+                        <p class="text-secondary small mb-3">
+                            The Business Contact module is architected to dynamically scale. Future releases will support:
+                        </p>
+                        <div class="row g-2 small text-info-emphasis">
+                            <div class="col-md-6 d-flex align-items-center gap-2">
+                                <i class="bi bi-patch-check-fill text-info"></i> Commission & outstanding balance
+                            </div>
+                            <div class="col-md-6 d-flex align-items-center gap-2">
+                                <i class="bi bi-patch-check-fill text-info"></i> Aadhaar/PAN verification
+                            </div>
+                            <div class="col-md-6 d-flex align-items-center gap-2">
+                                <i class="bi bi-patch-check-fill text-info"></i> Invoice purchase history & QR details
+                            </div>
+                            <div class="col-md-6 d-flex align-items-center gap-2">
+                                <i class="bi bi-patch-check-fill text-info"></i> Geo location & preferred products
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
