@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { ProductSearchService } from './product-search.service';
 import { DatabaseService } from '../../database/database';
-import { defaultNormalizer, Normalizer } from '../utils/normalization';
+import { defaultNormalizer, Normalizer, extractQuantityAndUnit, mapUnitToStandard } from '../utils/normalization';
 import { levenshteinDistance, levenshteinSimilarity } from '../utils/levenshtein';
 import { ScoringProcessor, ScoringContext, SearchableProduct } from '../models/search.model';
 
@@ -23,6 +23,31 @@ describe('Search Normalization & Levenshtein Utilities', () => {
     expect(defaultNormalizer.normalize('5 liter')).toBe('5l');
     expect(defaultNormalizer.normalize('6 kilogram')).toBe('6kg');
     expect(defaultNormalizer.normalize('10 pieces')).toBe('10pcs');
+  });
+
+  it('should extract quantity and unit from search queries', () => {
+    const res1 = extractQuantityAndUnit('Prince pipes 10 foot');
+    expect(res1.cleanText).toBe('Prince pipes');
+    expect(res1.quantity).toBe(10);
+    expect(res1.unit).toBe('foot');
+    expect(mapUnitToStandard(res1.unit)).toBe('Ft');
+
+    const res2 = extractQuantityAndUnit('15.5 kg Ashirvad PVC');
+    expect(res2.cleanText).toBe('Ashirvad PVC');
+    expect(res2.quantity).toBe(15.5);
+    expect(res2.unit).toBe('kg');
+    expect(mapUnitToStandard(res2.unit)).toBe('Kg');
+
+    const res3 = extractQuantityAndUnit('Tractor Emulsion 20 લીટર');
+    expect(res3.cleanText).toBe('Tractor Emulsion');
+    expect(res3.quantity).toBe(20);
+    expect(res3.unit).toBe('લીટર');
+    expect(mapUnitToStandard(res3.unit)).toBe('Ltr');
+
+    const noMatch = extractQuantityAndUnit('Supreme PVC pipe 1"');
+    expect(noMatch.cleanText).toBe('Supreme PVC pipe 1"');
+    expect(noMatch.quantity).toBeNull();
+    expect(noMatch.unit).toBeNull();
   });
 
   it('should tokenize query text into clean token arrays', () => {

@@ -106,3 +106,67 @@ export class Normalizer {
  * Singleton instance of the default normalizer for ease of use across the application.
  */
 export const defaultNormalizer = new Normalizer();
+
+export interface ParsedSpeechQuery {
+  readonly cleanText: string;
+  readonly quantity: number | null;
+  readonly unit: string | null;
+}
+
+/**
+ * Parses numeric quantities and measurement unit indicators from queries
+ * to separate the quantity from the clean search string.
+ * Supports both English units and Gujarati phonetic scripts.
+ */
+export function extractQuantityAndUnit(text: string): ParsedSpeechQuery {
+  if (!text) {
+    return { cleanText: '', quantity: null, unit: null };
+  }
+
+  // Regex matches decimal or integer digits, optionally followed by space, and then a unit keyword.
+  // Uses positive lookahead to assert word boundaries on non-ASCII Gujarati characters.
+  const unitPattern = /\b(\d+(?:\.\d+)?)\s*(foot|feet|ft|pcs|piece|pieces|mtr|meter|meters|litre|liter|ltr|l|kg|kilogram|kgs|bag|bags|box|boxes|roll|rolls|pkt|packet|packets|bundle|bundles|doz|dozen|dozens|પીસ|કિલો|લીટર|મીટર|ફૂટ|ફીટ|નંગ)(?=\s|$|[\p{P}\p{S}])/iu;
+
+  const match = text.match(unitPattern);
+  if (match) {
+    const matchedSegment = match[0];
+    const quantityStr = match[1];
+    const unitStr = match[2];
+
+    const cleanText = text.replace(matchedSegment, '').replace(/\s+/g, ' ').trim();
+
+    return {
+      cleanText,
+      quantity: parseFloat(quantityStr),
+      unit: unitStr
+    };
+  }
+
+  return {
+    cleanText: text,
+    quantity: null,
+    unit: null
+  };
+}
+
+/**
+ * Standardizes units into canonical formats matching the local database records.
+ */
+export function mapUnitToStandard(unit: string | null): string | null {
+  if (!unit) return null;
+  const lower = unit.toLowerCase();
+
+  if (['foot', 'feet', 'ft', 'ફૂટ', 'ફીટ'].includes(lower)) return 'Ft';
+  if (['pcs', 'piece', 'pieces', 'પીસ', 'નંગ'].includes(lower)) return 'Pcs';
+  if (['mtr', 'meter', 'meters', 'મીટર'].includes(lower)) return 'Mtr';
+  if (['litre', 'liter', 'ltr', 'l', 'લીટર'].includes(lower)) return 'Ltr';
+  if (['kg', 'kilogram', 'kgs', 'કિલો'].includes(lower)) return 'Kg';
+  if (['bag', 'bags'].includes(lower)) return 'Bag';
+  if (['box', 'boxes'].includes(lower)) return 'Box';
+  if (['roll', 'rolls'].includes(lower)) return 'Roll';
+  if (['pkt', 'packet', 'packets'].includes(lower)) return 'Pkt';
+  if (['bundle', 'bundles'].includes(lower)) return 'Bundle';
+
+  return unit.charAt(0).toUpperCase() + unit.slice(1);
+}
+

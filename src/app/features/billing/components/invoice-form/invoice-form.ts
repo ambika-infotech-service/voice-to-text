@@ -10,6 +10,8 @@ import { ProductRepository } from '../../../../core/database/repositories/produc
 import { Product } from '../../../../core/database/models/product.model';
 import { SpeechService } from '../../../../core/speech/services/speech';
 import { ProductSearchService } from '../../../../core/search/services/product-search.service';
+import { extractQuantityAndUnit, mapUnitToStandard } from '../../../../core/search/utils/normalization';
+
 
 /**
  * Controller component for the Billing Form panel.
@@ -63,15 +65,17 @@ export class InvoiceForm implements OnInit, OnDestroy {
 
           if (finalQuery) {
             try {
-              const result = await this.searchService.searchProducts(finalQuery);
+              const parsed = extractQuantityAndUnit(finalQuery);
+              const result = await this.searchService.searchProducts(parsed.cleanText);
               const group = this.getItemGroup(targetIndex);
               if (group) {
                 if (result.bestMatch && result.confidence > 90) {
-                  // High confidence -> auto-populate row details
+                  // High confidence -> auto-populate row details with parsed metrics
                   group.patchValue({
                     itemName: result.bestMatch.DisplayName,
-                    unit: result.bestMatch.Unit,
-                    rate: result.bestMatch.SellingPrice
+                    unit: mapUnitToStandard(parsed.unit) ?? result.bestMatch.Unit,
+                    rate: result.bestMatch.SellingPrice,
+                    quantity: parsed.quantity ?? 1
                   });
                 } else {
                   // Medium/low confidence -> set value so user is prompted with options

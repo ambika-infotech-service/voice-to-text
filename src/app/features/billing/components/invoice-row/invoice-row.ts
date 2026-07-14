@@ -4,6 +4,8 @@ import { DecimalPipe } from '@angular/common';
 import { Product } from '../../../../core/database/models/product.model';
 import { CalculationService } from '../../services/calculation.service';
 import { ProductSearchService } from '../../../../core/search/services/product-search.service';
+import { extractQuantityAndUnit, mapUnitToStandard } from '../../../../core/search/utils/normalization';
+
 
 /**
  * Reusable table row component representing a single invoice line item.
@@ -42,6 +44,10 @@ export class InvoiceRow implements OnInit {
   protected readonly showDropdown = signal(false);
   protected readonly filteredProducts = signal<Product[]>([]);
 
+  // Cached parsing details from spoken/typed input
+  private parsedQuantity: number | null = null;
+  private parsedUnit: string | null = null;
+
   constructor() {
     effect(async () => {
       const query = this.searchQuery();
@@ -62,11 +68,17 @@ export class InvoiceRow implements OnInit {
     const nameControl = this.itemGroup().get('itemName');
     if (nameControl) {
       nameControl.valueChanges.subscribe(val => {
-        const query = (val || '').trim();
-        this.searchQuery.set(query);
+        const queryRaw = val || '';
+        const parsed = extractQuantityAndUnit(queryRaw);
 
-        if (query) {
-          const isExactProduct = this.availableProducts().some(p => p.DisplayName === query);
+        this.parsedQuantity = parsed.quantity;
+        this.parsedUnit = mapUnitToStandard(parsed.unit);
+
+        const cleanQuery = parsed.cleanText.trim();
+        this.searchQuery.set(cleanQuery);
+
+        if (cleanQuery) {
+          const isExactProduct = this.availableProducts().some(p => p.DisplayName === cleanQuery);
           if (!isExactProduct) {
             this.showDropdown.set(true);
           } else {
@@ -106,9 +118,13 @@ export class InvoiceRow implements OnInit {
   protected selectProduct(prod: Product): void {
     this.itemGroup().patchValue({
       itemName: prod.DisplayName,
-      unit: prod.Unit,
-      rate: prod.SellingPrice
+      unit: this.parsedUnit ?? prod.Unit,
+      rate: prod.SellingPrice,
+      quantity: this.parsedQuantity ?? this.itemGroup().get('quantity')?.value ?? 1
     });
     this.showDropdown.set(false);
+    // Reset parsed metrics state
+    this.parsedQuantity = null;
+    this.parsedUnit = null;
   }
 }
