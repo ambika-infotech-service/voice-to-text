@@ -7,20 +7,53 @@
         <div class="card-body pt-0">
             <div class="row g-3">
                 <!-- Customer Name -->
-                <div class="col-md-6">
-                    <label for="customerName" class="form-label small font-weight-bold text-secondary">Customer Name
-                        *</label>
+                <div class="col-md-6 position-relative">
+                    <label for="customerName" class="form-label small font-weight-bold text-secondary">Customer Name *</label>
                     <input id="customerName" type="text" class="form-control form-control-sm"
-                        formControlName="customerName" placeholder="e.g. John Doe">
+                        formControlName="customerName" placeholder="Search by name, company, mobile..."
+                        autocomplete="off"
+                        (input)="onCustomerSearchInput($event)" (focus)="onCustomerFocus()" (blur)="onCustomerBlur()">
+                    
+                    @if (showCustomerDropdown() && filteredCustomers().length > 0) {
+                    <ul class="dropdown-menu show position-absolute w-100 shadow border-secondary-subtle overflow-y-auto"
+                        style="max-height: 200px; z-index: 1050; left: 0; top: 100%;">
+                        @for (cust of filteredCustomers(); track cust.id) {
+                        <li>
+                            <button type="button"
+                                class="dropdown-item small d-flex flex-column py-2 px-3 border-bottom border-light-subtle align-items-start"
+                                (mousedown)="selectCustomer(cust)">
+                                <span class="text-dark font-weight-bold">
+                                    {{ cust.customer_name }}
+                                    @if (cust.company_name) {
+                                        <span class="text-secondary font-weight-normal font-italic small"> - {{ cust.company_name }}</span>
+                                    }
+                                </span>
+                                @if (cust.mobile || cust.gst_number) {
+                                    <span class="text-muted extra-small mt-0.5" style="font-size: 0.725rem;">
+                                        @if (cust.mobile) { 📞 {{ cust.mobile }} }
+                                        @if (cust.gst_number) { <span class="ms-2">GST: {{ cust.gst_number }}</span> }
+                                    </span>
+                                }
+                            </button>
+                        </li>
+                        }
+                    </ul>
+                    }
                     @if (invoiceForm.get('customerName')?.touched && invoiceForm.get('customerName')?.invalid) {
                     <div class="text-danger small mt-1">Name is required (min 3 characters)</div>
                     }
                 </div>
 
-                <!-- Customer Mobile -->
+                <!-- Company Name -->
                 <div class="col-md-6">
-                    <label for="customerMobile" class="form-label small font-weight-bold text-secondary">Mobile No.
-                        *</label>
+                    <label for="companyName" class="form-label small font-weight-bold text-secondary">Company Name</label>
+                    <input id="companyName" type="text" class="form-control form-control-sm"
+                        formControlName="companyName" placeholder="e.g. Acme Hardware Corp">
+                </div>
+
+                <!-- Customer Mobile -->
+                <div class="col-md-4">
+                    <label for="customerMobile" class="form-label small font-weight-bold text-secondary">Mobile No. *</label>
                     <input id="customerMobile" type="text" class="form-control form-control-sm"
                         formControlName="customerMobile" placeholder="10-digit number">
                     @if (invoiceForm.get('customerMobile')?.touched && invoiceForm.get('customerMobile')?.invalid) {
@@ -28,25 +61,24 @@
                     }
                 </div>
 
-                <!-- Customer Address -->
-                <div class="col-12">
-                    <label for="customerAddress" class="form-label small font-weight-bold text-secondary">Billing
-                        Address</label>
-                    <textarea id="customerAddress" rows="2" class="form-control form-control-sm"
-                        formControlName="customerAddress" placeholder="Complete address detail..."></textarea>
-                </div>
-
-                <!-- Invoice Date & No -->
-                <div class="col-md-6">
-                    <label for="invoiceNo" class="form-label small font-weight-bold text-secondary">Invoice No.
-                        *</label>
+                <!-- Invoice No -->
+                <div class="col-md-4">
+                    <label for="invoiceNo" class="form-label small font-weight-bold text-secondary">Invoice No. *</label>
                     <input id="invoiceNo" type="text" class="form-control form-control-sm" formControlName="invoiceNo">
                 </div>
-                <div class="col-md-6">
-                    <label for="invoiceDate" class="form-label small font-weight-bold text-secondary">Invoice Date
-                        *</label>
+
+                <!-- Invoice Date -->
+                <div class="col-md-4">
+                    <label for="invoiceDate" class="form-label small font-weight-bold text-secondary">Invoice Date *</label>
                     <input id="invoiceDate" type="date" class="form-control form-control-sm"
                         formControlName="invoiceDate">
+                </div>
+
+                <!-- Customer Address -->
+                <div class="col-12">
+                    <label for="customerAddress" class="form-label small font-weight-bold text-secondary">Billing Address</label>
+                    <textarea id="customerAddress" rows="2" class="form-control form-control-sm"
+                        formControlName="customerAddress" placeholder="Complete address detail..."></textarea>
                 </div>
             </div>
         </div>

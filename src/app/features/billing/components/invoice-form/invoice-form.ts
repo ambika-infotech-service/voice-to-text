@@ -11,6 +11,7 @@ import { Product } from '../../../../core/database/models/product.model';
 import { SpeechService } from '../../../../core/speech/services/speech';
 import { ProductSearchService } from '../../../../core/search/services/product-search.service';
 import { extractQuantityAndUnit, mapUnitToStandard } from '../../../../core/search/utils/normalization';
+import { CustomerService } from '../../../customers/services/customer.service';
 
 
 /**
@@ -31,6 +32,7 @@ export class InvoiceForm implements OnInit, OnDestroy {
   private readonly productRepo = inject(ProductRepository);
   protected readonly speechService = inject(SpeechService);
   private readonly searchService = inject(ProductSearchService);
+  private readonly customerService = inject(CustomerService);
 
   private readonly destroy$ = new Subject<void>();
 
@@ -39,7 +41,27 @@ export class InvoiceForm implements OnInit, OnDestroy {
   protected readonly activeMicRowIndex = signal<number | null>(null);
   protected readonly selectedVoiceLang = signal('en-US');
 
+  // Customer search autocomplete UI states
+  protected readonly showCustomerDropdown = signal(false);
+  protected readonly filteredCustomers = signal<any[]>([]);
+  protected readonly customerSearchQuery = signal('');
+
   constructor() {
+    // Effect to monitor customer search text changes
+    effect(async () => {
+      const query = this.customerSearchQuery();
+      if (!query.trim()) {
+        this.filteredCustomers.set([]);
+        return;
+      }
+      try {
+        const results = await this.customerService.searchCustomer(query);
+        this.filteredCustomers.set(results);
+      } catch (err) {
+        console.error('Customer autocomplete search failed:', err);
+      }
+    });
+
     effect(() => {
       const activeIdx = this.activeMicRowIndex();
       if (activeIdx === null) return;
@@ -101,6 +123,24 @@ export class InvoiceForm implements OnInit, OnDestroy {
     this.addItemRow();
 
     this.loadProducts();
+
+    // Listen to customerName input changes to fetch autocomplete search matches
+    const nameControl = this.invoiceForm.get('customerName');
+    if (nameControl) {
+      nameControl.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(val => {
+        const query = val || '';
+        this.customerSearchQuery.set(query);
+
+        const matchesExact = this.filteredCustomers().some(c => c.customer_name === query);
+        if (matchesExact) {
+          this.showCustomerDropdown.set(false);
+        } else if (query.trim().length >= 2) {
+          this.showCustomerDropdown.set(true);
+        } else {
+          this.showCustomerDropdown.set(false);
+        }
+      });
+    }
   }
 
   public ngOnDestroy(): void {
@@ -115,6 +155,7 @@ export class InvoiceForm implements OnInit, OnDestroy {
       invoiceNo: [currentInvoice.invoiceNo, Validators.required],
       invoiceDate: [currentInvoice.invoiceDate, Validators.required],
       customerName: [currentInvoice.customerName, [Validators.required, Validators.minLength(3)]],
+      companyName: [currentInvoice.companyName || ''],
       customerMobile: [currentInvoice.customerMobile, [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
       customerAddress: [currentInvoice.customerAddress],
       notes: [currentInvoice.notes],
@@ -173,6 +214,7 @@ export class InvoiceForm implements OnInit, OnDestroy {
         invoiceNo: value.invoiceNo,
         invoiceDate: value.invoiceDate,
         customerName: value.customerName,
+        companyName: value.companyName || '',
         customerMobile: value.customerMobile,
         customerAddress: value.customerAddress,
         notes: value.notes,
@@ -225,6 +267,42 @@ export class InvoiceForm implements OnInit, OnDestroy {
     const lang = (event.target as HTMLSelectElement).value;
     this.selectedVoiceLang.set(lang);
     this.speechService.setLanguage(lang);
+  }
+
+  protected onCustomerSearchInput(event: Event): void {
+    const val = (event.target as HTMLInputElement).value;
+    this.customerSearchQuery.set(val);
+    this.showCustomerDropdown.set(true);
+  }
+
+  protected onCustomerFocus(): void {
+    const val = this.invoiceForm.get('customerName')?.value || '';
+    this.customerSearchQuery.set(val);
+    this.showCustomerDropdown.set(true);
+  }
+
+  protected onCustomerBlur(): void {
+    setTimeout(() => {
+      this.showCustomerDropdown.set(false);
+    }, 250);
+  }
+
+  protected selectCustomer(customer: any): void {
+    let fullAddress = customer.address || '';
+    const addressParts = [customer.city, customer.state, customer.pincode].filter(p => !!p);
+    if (addressParts.length > 0) {
+      fullAddress += (fullAddress ? '\n' : '') + addressParts.join(', ');
+    }
+
+    this.invoiceForm.patchValue({
+      customerName: customer.customer_name,
+      companyName: customer.company_name || '',
+      customerMobile: customer.mobile || '',
+      customerAddress: fullAddress
+    }, { emitEvent: false }); // Avoid infinite validation trigger loops
+
+    this.customerSearchQuery.set(customer.customer_name);
+    this.showCustomerDropdown.set(false);
   }
 
   private async loadProducts(): Promise<void> {
