@@ -100,6 +100,21 @@ export class CustomerService {
   }
 
   /**
+   * Registers a single worker associated with a customer.
+   */
+  public async createWorker(worker: CustomerWorker): Promise<number> {
+    try {
+      const id = await this.customerRepo.createWorker(worker);
+      this.toast.success('Worker contact registered successfully.');
+      return id;
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      this.toast.error(`Failed to register worker contact: ${msg}`);
+      throw err;
+    }
+  }
+
+  /**
    * Deletes a customer. Cascade delete removes associated workers in database.
    */
   public async deleteCustomer(id: number): Promise<boolean> {

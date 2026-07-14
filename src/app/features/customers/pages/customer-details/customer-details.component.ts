@@ -35,7 +35,7 @@ export class CustomerDetailsComponent implements OnInit {
   protected readonly isAddingWorker = signal(false);
   protected readonly isShowQuickAdd = signal(false);
 
-  private readonly indianMobileRegex = '^[6-9]\\d{9}$';
+  private readonly indianMobileRegex = '^([6-9]\\d{9})?$';
 
   public ngOnInit(): void {
     this.initializeQuickWorkerForm();
@@ -128,11 +128,7 @@ export class CustomerDetailsComponent implements OnInit {
       };
 
       // Direct save to DB via Service
-      await this.customerService.saveCustomerWithWorkers(
-        // Send existing customer detail (so save structure transaction succeeds but ignores duplication)
-        customerVal,
-        [worker]
-      );
+      await this.customerService.createWorker(worker);
 
       this.quickWorkerForm.reset();
       this.isShowQuickAdd.set(false);

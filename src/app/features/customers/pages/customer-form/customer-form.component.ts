@@ -44,9 +44,8 @@ export class CustomerFormComponent implements OnInit {
   protected readonly customerId = signal<number | null>(null);
   protected readonly isSubmitting = signal(false);
 
-  // Regex patterns
-  private readonly indianMobileRegex = '^[6-9]\\d{9}$';
-  private readonly gstinRegex = '^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$';
+  private readonly indianMobileRegex = '^([6-9]\\d{9})?$';
+  private readonly gstinRegex = '^([0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1})?$';
 
   public ngOnInit(): void {
     this.initializeForm();
@@ -66,7 +65,7 @@ export class CustomerFormComponent implements OnInit {
       address: [''],
       city: [''],
       state: [''],
-      pincode: ['', [Validators.pattern('^\\d{6}$')]], // Indian pincode validation (6 digits)
+      pincode: ['', [Validators.pattern('^(\\d{6})?$')]], // Indian pincode validation (6 digits)
       notes: [''],
       workers: this.fb.array([])
     }, { validators: companyOrCustomerNameValidator });
