@@ -9,6 +9,7 @@ import { InvoiceTotals } from '../invoice-totals/invoice-totals';
 import { ProductRepository } from '../../../../core/database/repositories/product';
 import { Product } from '../../../../core/database/models/product.model';
 import { SpeechService } from '../../../../core/speech/services/speech';
+import { ProductSearchService } from '../../../../core/search/services/product-search.service';
 
 /**
  * Controller component for the Billing Form panel.
@@ -27,6 +28,7 @@ export class InvoiceForm implements OnInit, OnDestroy {
   private readonly pdfService = inject(PdfService);
   private readonly productRepo = inject(ProductRepository);
   protected readonly speechService = inject(SpeechService);
+  private readonly searchService = inject(ProductSearchService);
 
   private readonly destroy$ = new Subject<void>();
 
@@ -53,8 +55,35 @@ export class InvoiceForm implements OnInit, OnDestroy {
 
       // Automatically reset listening state once completed or encountered an error
       if (state.status === 'error' || (state.status === 'idle' && state.finalTranscript)) {
-        setTimeout(() => {
+        const finalQuery = state.finalTranscript;
+        const targetIndex = activeIdx;
+
+        setTimeout(async () => {
           this.activeMicRowIndex.set(null);
+
+          if (finalQuery) {
+            try {
+              const result = await this.searchService.searchProducts(finalQuery);
+              const group = this.getItemGroup(targetIndex);
+              if (group) {
+                if (result.bestMatch && result.confidence > 90) {
+                  // High confidence -> auto-populate row details
+                  group.patchValue({
+                    itemName: result.bestMatch.DisplayName,
+                    unit: result.bestMatch.Unit,
+                    rate: result.bestMatch.SellingPrice
+                  });
+                } else {
+                  // Medium/low confidence -> set value so user is prompted with options
+                  group.patchValue({
+                    itemName: finalQuery
+                  });
+                }
+              }
+            } catch (err) {
+              console.error('Voice search failed:', err);
+            }
+          }
         }, 100);
       }
     });

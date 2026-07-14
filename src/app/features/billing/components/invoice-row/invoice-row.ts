@@ -1,8 +1,9 @@
-import { Component, input, output, signal, computed, inject } from '@angular/core';
+import { Component, input, output, signal, inject, OnInit, effect } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { Product } from '../../../../core/database/models/product.model';
 import { CalculationService } from '../../services/calculation.service';
+import { ProductSearchService } from '../../../../core/search/services/product-search.service';
 
 /**
  * Reusable table row component representing a single invoice line item.
@@ -14,7 +15,7 @@ import { CalculationService } from '../../services/calculation.service';
   templateUrl: './invoice-row.html',
   styleUrl: './invoice-row.scss'
 })
-export class InvoiceRow {
+export class InvoiceRow implements OnInit {
   // Input FormGroup representing this specific invoice item
   public readonly itemGroup = input.required<FormGroup>();
 
@@ -34,41 +35,49 @@ export class InvoiceRow {
   public readonly deleteRow = output<number>();
 
   private readonly calcService = inject(CalculationService);
+  private readonly searchService = inject(ProductSearchService);
 
   // Search autocomplete UI state
   protected readonly searchQuery = signal('');
   protected readonly showDropdown = signal(false);
+  protected readonly filteredProducts = signal<Product[]>([]);
 
-  // Reactively filters products list using fuzzy Levenshtein scores on names, SKUs and synonyms
-  protected readonly filteredProducts = computed(() => {
-    const query = this.searchQuery().toLowerCase().trim();
-    if (!query) return [];
-
-    const scored = this.availableProducts().map(prod => {
-      // 1. Calculate similarity against product Display Name
-      let maxScore = this.calcService.getFuzzySimilarity(query, prod.DisplayName || '');
-
-      // 2. Calculate similarity against product SKU
-      const skuScore = this.calcService.getFuzzySimilarity(query, prod.SKU || '');
-      if (skuScore > maxScore) maxScore = skuScore;
-
-      // 3. Calculate similarity against synonym search aliases
-      if (prod.keywords && Array.isArray(prod.keywords)) {
-        for (const kw of prod.keywords) {
-          const kwScore = this.calcService.getFuzzySimilarity(query, kw);
-          if (kwScore > maxScore) maxScore = kwScore;
-        }
+  constructor() {
+    effect(async () => {
+      const query = this.searchQuery();
+      if (!query.trim()) {
+        this.filteredProducts.set([]);
+        return;
       }
-
-      return { prod, score: maxScore };
+      try {
+        const result = await this.searchService.searchProducts(query);
+        this.filteredProducts.set(result.products);
+      } catch (err) {
+        console.error('Search failed:', err);
+      }
     });
+  }
 
-    // Filter by threshold (keeps similarity > 0.45) and sorts by best match descending
-    return scored
-      .filter(item => item.score > 0.45)
-      .sort((a, b) => b.score - a.score)
-      .map(item => item.prod);
-  });
+  public ngOnInit(): void {
+    const nameControl = this.itemGroup().get('itemName');
+    if (nameControl) {
+      nameControl.valueChanges.subscribe(val => {
+        const query = (val || '').trim();
+        this.searchQuery.set(query);
+
+        if (query) {
+          const isExactProduct = this.availableProducts().some(p => p.DisplayName === query);
+          if (!isExactProduct) {
+            this.showDropdown.set(true);
+          } else {
+            this.showDropdown.set(false);
+          }
+        } else {
+          this.showDropdown.set(false);
+        }
+      });
+    }
+  }
 
   protected onDelete(): void {
     this.deleteRow.emit(this.index());
