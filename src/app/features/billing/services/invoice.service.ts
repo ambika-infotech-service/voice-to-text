@@ -18,6 +18,7 @@ export class InvoiceService {
       invoiceNo: `INV-${new Date().getFullYear()}-${randomNo}`,
       invoiceDate: dateStr,
       customerName: '',
+      companyName: '',
       customerMobile: '',
       customerAddress: '',
       notes: 'Thank you for shopping with us!', // 'Goods once sold cannot be returned.',
