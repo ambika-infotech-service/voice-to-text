@@ -1,0 +1,219 @@
+<div class="container-fluid py-2">
+    <!-- Breadcrumb / Back Button -->
+    <div class="mb-3">
+        <a routerLink="/customers" class="text-decoration-none text-muted d-inline-flex align-items-center gap-1.5 small">
+            <i class="bi bi-arrow-left"></i> Back to Customers List
+        </a>
+    </div>
+
+    <!-- Form Title -->
+    <div class="mb-4">
+        <h3 class="font-weight-bold text-dark mb-1">
+            {{ isEditMode() ? 'Edit Customer Profile' : 'Register New Customer' }}
+        </h3>
+        <p class="text-secondary small mb-0">Fill in the fields below to create or update the profile and associated contact persons</p>
+    </div>
+
+    <form [formGroup]="customerForm" (ngSubmit)="onSubmit()" class="pb-5">
+        <!-- 1. Group-level Error Banner -->
+        @if (customerForm.touched && customerForm.errors?.['nameRequired']) {
+            <div class="alert alert-danger shadow-sm border-start border-4 border-danger mb-4" role="alert">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                    <div class="font-weight-semibold">At least one identifier (Company Name or Customer Name) must be entered.</div>
+                </div>
+            </div>
+        }
+
+        <div class="row g-4">
+            <!-- Left Column: Customer Information -->
+            <div class="col-lg-7">
+                <div class="card shadow-sm border-0 rounded-3 h-100">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h5 class="card-title font-weight-bold text-dark mb-0">Customer Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <!-- Company Name -->
+                            <div class="col-md-6">
+                                <label for="company_name" class="form-label font-weight-semibold text-secondary small">Company Name</label>
+                                <input type="text" id="company_name" class="form-control" formControlName="company_name" 
+                                       placeholder="e.g. Acme Hardware Corp"
+                                       [class.is-invalid]="customerForm.touched && customerForm.errors?.['nameRequired']" />
+                            </div>
+
+                            <!-- Customer Name -->
+                            <div class="col-md-6">
+                                <label for="customer_name" class="form-label font-weight-semibold text-secondary small">Customer Name</label>
+                                <input type="text" id="customer_name" class="form-control" formControlName="customer_name" 
+                                       placeholder="e.g. Rajesh Kumar"
+                                       [class.is-invalid]="customerForm.touched && customerForm.errors?.['nameRequired']" />
+                            </div>
+
+                            <!-- Mobile -->
+                            <div class="col-md-6">
+                                <label for="mobile" class="form-label font-weight-semibold text-secondary small">Mobile Number</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted small">+91</span>
+                                    <input type="text" id="mobile" class="form-control" formControlName="mobile" 
+                                           placeholder="10-digit mobile number"
+                                           [class.is-invalid]="customerForm.get('mobile')?.touched && customerForm.get('mobile')?.invalid" />
+                                </div>
+                                @if (customerForm.get('mobile')?.touched && customerForm.get('mobile')?.errors?.['pattern']) {
+                                    <div class="invalid-feedback d-block small">Invalid Indian mobile format (must be 10 digits starting with 6-9).</div>
+                                }
+                            </div>
+
+                            <!-- Email -->
+                            <div class="col-md-6">
+                                <label for="email" class="form-label font-weight-semibold text-secondary small">Email Address</label>
+                                <input type="email" id="email" class="form-control" formControlName="email" 
+                                       placeholder="e.g. rajesh@example.com"
+                                       [class.is-invalid]="customerForm.get('email')?.touched && customerForm.get('email')?.invalid" />
+                                @if (customerForm.get('email')?.touched && customerForm.get('email')?.errors?.['email']) {
+                                    <div class="invalid-feedback d-block small">Please enter a valid email address.</div>
+                                }
+                            </div>
+
+                            <!-- GST Number -->
+                            <div class="col-md-6">
+                                <label for="gst_number" class="form-label font-weight-semibold text-secondary small">GSTIN Number</label>
+                                <input type="text" id="gst_number" class="form-control text-uppercase" formControlName="gst_number" 
+                                       placeholder="15-digit GSTIN (e.g. 07AAAAA1111A1Z1)"
+                                       [class.is-invalid]="customerForm.get('gst_number')?.touched && customerForm.get('gst_number')?.invalid" />
+                                @if (customerForm.get('gst_number')?.touched && customerForm.get('gst_number')?.errors?.['pattern']) {
+                                    <div class="invalid-feedback d-block small">Invalid GSTIN format (15 characters: StateCode + PAN + EntityID + Z + CheckDigit).</div>
+                                }
+                            </div>
+
+                            <!-- Pincode -->
+                            <div class="col-md-6">
+                                <label for="pincode" class="form-label font-weight-semibold text-secondary small">Pincode</label>
+                                <input type="text" id="pincode" class="form-control" formControlName="pincode" 
+                                       placeholder="6-digit postal code"
+                                       [class.is-invalid]="customerForm.get('pincode')?.touched && customerForm.get('pincode')?.invalid" />
+                                @if (customerForm.get('pincode')?.touched && customerForm.get('pincode')?.errors?.['pattern']) {
+                                    <div class="invalid-feedback d-block small">Pincode must be exactly 6 digits.</div>
+                                }
+                            </div>
+
+                            <!-- Address -->
+                            <div class="col-12">
+                                <label for="address" class="form-label font-weight-semibold text-secondary small">Street Address</label>
+                                <textarea id="address" rows="2" class="form-control" formControlName="address" 
+                                          placeholder="Building name, street, locality..."></textarea>
+                            </div>
+
+                            <!-- City & State -->
+                            <div class="col-md-6">
+                                <label for="city" class="form-label font-weight-semibold text-secondary small">City</label>
+                                <input type="text" id="city" class="form-control" formControlName="city" placeholder="e.g. New Delhi" />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="state" class="form-label font-weight-semibold text-secondary small">State</label>
+                                <input type="text" id="state" class="form-control" formControlName="state" placeholder="e.g. Delhi" />
+                            </div>
+
+                            <!-- Notes -->
+                            <div class="col-12">
+                                <label for="notes" class="form-label font-weight-semibold text-secondary small">Additional Remarks / Notes</label>
+                                <textarea id="notes" rows="2" class="form-control" formControlName="notes" 
+                                          placeholder="Credit terms, special requirements or instructions..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Associated Workers -->
+            <div class="col-lg-5">
+                <div class="card shadow-sm border-0 rounded-3 h-100">
+                    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="card-title font-weight-bold text-dark mb-0">Workers / Contacts</h5>
+                        <button type="button" class="btn btn-outline-primary btn-sm font-weight-semibold d-inline-flex align-items-center gap-1" (click)="addWorker()">
+                            <i class="bi bi-plus-lg"></i> Add Worker
+                        </button>
+                    </div>
+                    <div class="card-body bg-light-subtle" style="max-height: 480px; overflow-y: auto;">
+                        <div formArrayName="workers">
+                            @if (workers.length === 0) {
+                                <div class="text-center py-5 text-muted">
+                                    <i class="bi bi-people display-6 d-block mb-2"></i>
+                                    <p class="small mb-0">No workers configured for this customer yet.</p>
+                                    <button type="button" class="btn btn-sm btn-link font-weight-semibold mt-1" (click)="addWorker()">
+                                        Add First Worker
+                                    </button>
+                                </div>
+                            }
+
+                            @for (workerCtrl of workers.controls; track $index) {
+                                <div [formGroupName]="$index" class="card shadow-sm border mb-3 rounded-2 p-3 bg-white position-relative">
+                                    <button type="button" 
+                                            class="btn-close position-absolute top-0 end-0 m-2" 
+                                            aria-label="Remove Worker" 
+                                            (click)="removeWorker($index)">
+                                    </button>
+                                    
+                                    <div class="row g-2.5">
+                                        <!-- Worker Name -->
+                                        <div class="col-12 pe-4">
+                                            <label class="form-label font-weight-semibold text-secondary small mb-1">Worker Name <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control form-control-sm" formControlName="worker_name" 
+                                                   placeholder="Full name"
+                                                   [class.is-invalid]="workerCtrl.get('worker_name')?.touched && workerCtrl.get('worker_name')?.invalid" />
+                                            @if (workerCtrl.get('worker_name')?.touched && workerCtrl.get('worker_name')?.errors?.['required']) {
+                                                <div class="invalid-feedback d-block small">Worker Name is required.</div>
+                                            }
+                                        </div>
+
+                                        <!-- Mobile -->
+                                        <div class="col-md-6">
+                                            <label class="form-label font-weight-semibold text-secondary small mb-1">Mobile</label>
+                                            <input type="text" class="form-control form-control-sm" formControlName="mobile" 
+                                                   placeholder="10-digit number"
+                                                   [class.is-invalid]="workerCtrl.get('mobile')?.touched && workerCtrl.get('mobile')?.invalid" />
+                                            @if (workerCtrl.get('mobile')?.touched && workerCtrl.get('mobile')?.errors?.['pattern']) {
+                                                <div class="invalid-feedback d-block small">Invalid format (10 digits).</div>
+                                            }
+                                        </div>
+
+                                        <!-- Designation -->
+                                        <div class="col-md-6">
+                                            <label class="form-label font-weight-semibold text-secondary small mb-1">Designation</label>
+                                            <input type="text" class="form-control form-control-sm" formControlName="designation" 
+                                                   placeholder="e.g. Supervisor, Driver" />
+                                        </div>
+
+                                        <!-- Notes -->
+                                        <div class="col-12">
+                                            <label class="form-label font-weight-semibold text-secondary small mb-1">Worker Notes</label>
+                                            <input type="text" class="form-control form-control-sm" formControlName="notes" 
+                                                   placeholder="Special comments or instructions..." />
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Actions Footer -->
+        <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
+            <a [routerLink]="isEditMode() ? ['/customers', customerId()] : ['/customers']" class="btn btn-light px-4 py-2 font-weight-semibold">
+                Cancel
+            </a>
+            <button type="submit" class="btn btn-primary px-4 py-2 font-weight-semibold shadow-sm d-inline-flex align-items-center gap-2" 
+                    [disabled]="isSubmitting()">
+                @if (isSubmitting()) {
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    Saving...
+                } @else {
+                    <i class="bi bi-check-circle-fill"></i> Save Records
+                }
+            </button>
+        </div>
+    </form>
+</div>

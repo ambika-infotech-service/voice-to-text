@@ -34,45 +34,34 @@
         @if (isDbReady()) {
         <!-- Tab Switcher Navigation -->
         <div class="row justify-content-center mb-4">
-            <div class="col-lg-8">
+            <div class="col-lg-10">
                 <div class="d-flex justify-content-center bg-white p-2 rounded shadow-sm gap-2">
-                    <button type="button" class="btn flex-grow-1 py-2 font-weight-bold"
-                        [class.btn-primary]="activeTab() === 'billing'" [class.btn-light]="activeTab() !== 'billing'"
-                        (click)="switchView('billing')">
+                    <a routerLink="/billing" routerLinkActive="btn-primary" [routerLinkActiveOptions]="{exact: true}" class="btn flex-grow-1 py-2 font-weight-bold btn-light">
                         A4 Invoice Generator
-                    </button>
-                    <button type="button" class="btn flex-grow-1 py-2 font-weight-bold"
-                        [class.btn-primary]="activeTab() === 'speech'" [class.btn-light]="activeTab() !== 'speech'"
-                        (click)="switchView('speech')">
+                    </a>
+                    <a routerLink="/customers" routerLinkActive="btn-primary" class="btn flex-grow-1 py-2 font-weight-bold btn-light">
+                        Customer Management
+                    </a>
+                    <a routerLink="/speech" routerLinkActive="btn-primary" class="btn flex-grow-1 py-2 font-weight-bold btn-light">
                         Voice Assistant Demo
-                    </button>
-                    <button type="button" class="btn flex-grow-1 py-2 font-weight-bold"
-                        [class.btn-primary]="activeTab() === 'database'" [class.btn-light]="activeTab() !== 'database'"
-                        (click)="switchView('database')">
+                    </a>
+                    <a routerLink="/database" routerLinkActive="btn-primary" class="btn flex-grow-1 py-2 font-weight-bold btn-light">
                         Database CRUD Manager
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>
 
         <!-- Render Views -->
         <div class="row justify-content-center">
-            <div class="col-12">
-                @if (activeTab() === 'billing') {
-                <app-billing-page></app-billing-page>
-                }
-                @if (activeTab() === 'speech') {
-                <div class="col-lg-10 mx-auto">
-                    <app-speech-demo></app-speech-demo>
-                </div>
-                }
-                @if (activeTab() === 'database') {
-                <div class="col-lg-10 mx-auto">
-                    <app-database-demo></app-database-demo>
-                </div>
-                }
+            <div class="col-lg-10 col-12">
+                <router-outlet></router-outlet>
             </div>
         </div>
         }
     </div>
 </main>
+
+<!-- Reusable global UI overlay components -->
+<app-toast></app-toast>
+<app-confirmation-dialog></app-confirmation-dialog>

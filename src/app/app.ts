@@ -1,16 +1,16 @@
 import { Component, OnInit, inject, signal, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { DatabaseService } from './core/database/database';
-import { SpeechDemo } from './core/speech/components/speech-demo/speech-demo';
-import { DatabaseDemo } from './core/database/components/database-demo/database-demo';
-import { BillingPage } from './features/billing/pages/billing-page/billing-page';
+import { ToastComponent } from './core/ui/toast/toast.component';
+import { ConfirmationDialogComponent } from './core/ui/confirmation-dialog/confirmation-dialog.component';
 
 /**
  * Root Application component.
- * Coordinates initialization of the SQLite data engine and switches demo dashboards.
+ * Coordinates initialization of the SQLite data engine and manages global UI layers.
  */
 @Component({
   selector: 'app-root',
-  imports: [SpeechDemo, DatabaseDemo, BillingPage],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, ToastComponent, ConfirmationDialogComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
@@ -19,9 +19,6 @@ export class App implements OnInit {
   private readonly dbService = inject(DatabaseService);
 
   protected readonly title = signal('voice-to-text');
-
-  // App views: 'billing' = Invoice Generator, 'speech' = Voice Assistant, 'database' = CRUD Data Browser
-  protected readonly activeTab = signal<'billing' | 'speech' | 'database'>('billing');
 
   // Database loading states
   protected readonly isDbReady = signal(false);
@@ -37,9 +34,5 @@ export class App implements OnInit {
       this.dbErrorMsg.set(msg);
       console.error('Failed to bootstrap SQLite engine:', err);
     }
-  }
-
-  protected switchView(tab: 'billing' | 'speech' | 'database'): void {
-    this.activeTab.set(tab);
   }
 }

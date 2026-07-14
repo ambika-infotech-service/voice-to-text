@@ -1,0 +1,10 @@
+/* Customer form specific styling */
+.card {
+  transition: box-shadow 0.2s ease-in-out;
+}
+.invalid-feedback {
+  font-size: 0.775rem;
+}
+input.is-invalid, textarea.is-invalid {
+  border-color: #dc3545;
+}

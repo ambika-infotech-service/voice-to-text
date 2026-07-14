@@ -3,6 +3,7 @@ import { Capacitor } from '@capacitor/core';
 import { CapacitorSQLite, SQLiteConnection, SQLiteDBConnection } from '@capacitor-community/sqlite';
 import { DB_NAME, DB_VERSION } from './database.constants';
 import { MigrationV1 } from './migrations/migration-v1';
+import { MigrationV2 } from './migrations/migration-v2';
 import { SeedV1 } from './seed/seed-v1';
 
 /**
@@ -17,7 +18,7 @@ export class DatabaseService {
   private isInitialized = false;
   private isTransactionActive = false; // Tracks transaction context state
 
-  private readonly migrations = [MigrationV1];
+  private readonly migrations = [MigrationV1, MigrationV2];
   private readonly seeds = [SeedV1];
 
   constructor() {

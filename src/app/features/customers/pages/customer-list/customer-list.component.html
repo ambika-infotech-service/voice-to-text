@@ -1,0 +1,173 @@
+<div class="card shadow-sm border-0 rounded-3 mb-4">
+    <!-- Header -->
+    <div class="card-header bg-white border-bottom py-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <h4 class="font-weight-bold text-dark mb-1">Customer Management</h4>
+            <p class="text-secondary small mb-0">Browse, filter, search, and manage your customer and partner worker accounts</p>
+        </div>
+        <div>
+            <a routerLink="/customers/new" class="btn btn-primary px-4 py-2 font-weight-semibold shadow-sm d-inline-flex align-items-center gap-2">
+                <i class="bi bi-person-plus-fill"></i> Add Customer
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="card-body bg-light-subtle border-bottom py-3">
+        <div class="row g-3 align-items-center">
+            <!-- Search Input -->
+            <div class="col-md-6 col-lg-5">
+                <div class="input-group shadow-sm">
+                    <span class="input-group-text bg-white border-end-0 text-muted">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" 
+                           class="form-control border-start-0 ps-0" 
+                           placeholder="Search by company, customer name, mobile or GST..."
+                           [(ngModel)]="searchText"
+                           (ngModelChange)="onSearchChange()" />
+                </div>
+            </div>
+
+            <!-- Sorting Select -->
+            <div class="col-md-4 col-lg-3 ms-auto">
+                <div class="d-flex align-items-center gap-2">
+                    <label class="text-secondary small font-weight-semibold text-nowrap mb-0">Sort By:</label>
+                    <select class="form-select shadow-sm" 
+                            [ngModel]="sortBy()" 
+                            (ngModelChange)="onSortChange($event)">
+                        <option value="name">Alphabetical (Name)</option>
+                        <option value="recently_added">Recently Added</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Section -->
+    <div class="table-responsive">
+        @if (isLoading()) {
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="text-muted mt-2 small">Loading customers...</p>
+            </div>
+        } @else if (customers().length === 0) {
+            <div class="text-center py-5">
+                <i class="bi bi-people-fill text-muted display-4 d-block mb-3"></i>
+                <h5 class="text-dark font-weight-bold">No Customers Found</h5>
+                <p class="text-secondary small">No customer records matching your filter parameters exist in the database.</p>
+                @if (searchText().trim() !== '') {
+                    <button class="btn btn-sm btn-outline-secondary mt-2" (click)="searchText.set(''); fetchData();">
+                        Clear Search
+                    </button>
+                }
+            </div>
+        } @else {
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light text-secondary small uppercase">
+                    <tr>
+                        <th class="ps-4">Company Name</th>
+                        <th>Customer Name</th>
+                        <th>Mobile Number</th>
+                        <th>Workers</th>
+                        <th>GST Number</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (customer of customers(); track customer.id) {
+                        <tr>
+                            <!-- Company -->
+                            <td class="ps-4 font-weight-semibold text-dark">
+                                @if (customer.company_name) {
+                                    {{ customer.company_name }}
+                                } @else {
+                                    <span class="text-muted font-weight-normal font-italic small">—</span>
+                                }
+                            </td>
+                            <!-- Customer Name -->
+                            <td>
+                                <span class="font-weight-medium">{{ customer.customer_name }}</span>
+                            </td>
+                            <!-- Mobile -->
+                            <td>
+                                @if (customer.mobile) {
+                                    <code class="text-dark bg-light px-2 py-1 rounded small">{{ customer.mobile }}</code>
+                                } @else {
+                                    <span class="text-muted small">None</span>
+                                }
+                            </td>
+                            <!-- Workers Count Badge -->
+                            <td>
+                                <span class="badge bg-secondary-subtle text-secondary border px-2.5 py-1.5 rounded-pill small">
+                                    {{ customer.worker_count ?? 0 }} worker(s)
+                                </span>
+                            </td>
+                            <!-- GSTIN -->
+                            <td>
+                                @if (customer.gst_number) {
+                                    <code class="text-primary bg-primary-subtle px-2 py-1 rounded small">{{ customer.gst_number }}</code>
+                                } @else {
+                                    <span class="text-muted small">—</span>
+                                }
+                            </td>
+                            <!-- Actions -->
+                            <td class="text-end pe-4">
+                                <div class="btn-group gap-1">
+                                    <a [routerLink]="['/customers', customer.id]" 
+                                       class="btn btn-outline-info btn-sm px-2.5 d-inline-flex align-items-center gap-1.5"
+                                       title="View Details">
+                                        <i class="bi bi-eye-fill"></i> View
+                                    </a>
+                                    <a [routerLink]="['/customers', customer.id, 'edit']" 
+                                       class="btn btn-outline-primary btn-sm px-2.5 d-inline-flex align-items-center gap-1.5"
+                                       title="Edit Profile">
+                                        <i class="bi bi-pencil-fill"></i> Edit
+                                    </a>
+                                    <button (click)="deleteCustomer(customer)" 
+                                            class="btn btn-outline-danger btn-sm px-2.5 d-inline-flex align-items-center gap-1.5"
+                                            title="Delete Customer">
+                                        <i class="bi bi-trash3-fill"></i> Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+
+    <!-- Pagination Footer -->
+    @if (!isLoading() && customers().length > 0) {
+        <div class="card-footer bg-white border-top py-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <span class="text-secondary small">
+                Showing Page <strong>{{ page() }}</strong> of <strong>{{ totalPages() }}</strong> (Total of {{ totalCount() }} customers)
+            </span>
+            <nav aria-label="Customer list navigation">
+                <ul class="pagination pagination-sm mb-0">
+                    <!-- Prev -->
+                    <li class="page-item" [class.disabled]="page() === 1">
+                        <button class="page-link py-2 px-3" (click)="setPage(page() - 1)" aria-label="Previous">
+                            <span aria-hidden="true">&laquo; Prev</span>
+                        </button>
+                    </li>
+                    
+                    <!-- Page Numbers -->
+                    @for (p of [].constructor(totalPages()); track $index) {
+                        <li class="page-item" [class.active]="page() === ($index + 1)">
+                            <button class="page-link py-2 px-3" (click)="setPage($index + 1)">{{ $index + 1 }}</button>
+                        </li>
+                    }
+
+                    <!-- Next -->
+                    <li class="page-item" [class.disabled]="page() === totalPages()">
+                        <button class="page-link py-2 px-3" (click)="setPage(page() + 1)" aria-label="Next">
+                            <span aria-hidden="true">Next &raquo;</span>
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    }
+</div>
