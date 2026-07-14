@@ -87,16 +87,46 @@
                 </div>
 
                 <!-- Purchased By Customer Contact -->
-                <div class="col-md-3">
-                    <label for="purchasedBy" class="form-label small font-weight-bold text-secondary">Purchased By
-                        *</label>
-                    <select id="purchasedBy" class="form-select form-select-sm" formControlName="purchasedBy">
-                        <option value="Self (Owner)">Self (Owner)</option>
-                        @for (contact of customerContacts(); track contact.id) {
-                        <option [value]="contact.contact_name">{{ contact.contact_name }} ({{ contact.designation ||
-                            'Staff' }})</option>
+                <div class="col-md-3 position-relative">
+                    <label for="purchasedBy" class="form-label small font-weight-bold text-secondary">Purchased By *</label>
+                    <input id="purchasedBy" type="text" class="form-control form-control-sm"
+                        formControlName="purchasedBy" placeholder="Self (Owner) or search workers..."
+                        autocomplete="off"
+                        (input)="onPurchasedBySearchInput($event)" (focus)="onPurchasedByFocus()" (blur)="onPurchasedByBlur()">
+                    
+                    @if (showPurchasedByDropdown() && filteredPurchasedByResults().length > 0) {
+                    <ul class="dropdown-menu show position-absolute w-100 shadow border-secondary-subtle overflow-y-auto"
+                        style="max-height: 200px; z-index: 1050; left: 0; top: 100%;">
+                        @for (item of filteredPurchasedByResults(); track item.uniqueId) {
+                        <li>
+                            <button type="button"
+                                class="dropdown-item small d-flex flex-column py-2 px-3 border-bottom border-light-subtle align-items-start"
+                                (mousedown)="selectPurchasedByResult(item)">
+                                <span class="text-dark font-weight-bold d-flex align-items-center gap-2">
+                                    @if (item.type === 'linked') {
+                                        <span class="badge bg-primary-subtle text-primary border px-2 py-0.5 rounded-pill extra-small" style="font-size: 0.65rem;">
+                                            <i class="bi bi-person"></i> Linked Contact
+                                        </span>
+                                    } @else {
+                                        <span class="badge bg-info-subtle text-info border px-2 py-0.5 rounded-pill extra-small" style="font-size: 0.65rem;">
+                                            <i class="bi bi-person-badge"></i> Global Worker
+                                        </span>
+                                    }
+                                    {{ item.displayName }}
+                                </span>
+                                @if (item.subtext) {
+                                    <span class="text-muted extra-small mt-0.5" style="font-size: 0.725rem;">
+                                        {{ item.subtext }}
+                                    </span>
+                                }
+                            </button>
+                        </li>
                         }
-                    </select>
+                    </ul>
+                    }
+                    @if (invoiceForm.get('purchasedBy')?.touched && invoiceForm.get('purchasedBy')?.invalid) {
+                    <div class="text-danger small mt-1">Purchased By is required</div>
+                    }
                 </div>
                 } @else {
                 <!-- Contact Mobile (Optional) -->

@@ -51,6 +51,11 @@ export class InvoiceForm implements OnInit, OnDestroy {
   protected readonly searchQuery = signal('');
   protected readonly customerContacts = signal<any[]>([]);
 
+  // Purchased By autocomplete UI states
+  protected readonly showPurchasedByDropdown = signal(false);
+  protected readonly purchasedBySearchQuery = signal('');
+  protected readonly filteredPurchasedByResults = signal<any[]>([]);
+
   constructor() {
     // Effect to monitor search text changes and combine results
     effect(async () => {
@@ -97,6 +102,61 @@ export class InvoiceForm implements OnInit, OnDestroy {
         this.filteredResults.set([...mappedCustomers, ...mappedContacts]);
       } catch (err) {
         console.error('Combined autocomplete search failed:', err);
+      }
+    });
+
+    // Effect to monitor Purchased By search query changes
+    effect(async () => {
+      const query = this.purchasedBySearchQuery();
+      const currentLinked = this.customerContacts();
+
+      // If query is empty, show default suggestions (Self (Owner) + linked contacts)
+      if (!query.trim()) {
+        const defaults = [
+          {
+            uniqueId: 'purchased-self',
+            type: 'linked' as const,
+            id: null,
+            displayName: 'Self (Owner)',
+            subtext: 'Primary Account Owner'
+          },
+          ...currentLinked.map(c => ({
+            uniqueId: `purchased-linked-${c.id}`,
+            type: 'linked' as const,
+            id: c.id,
+            displayName: c.contact_name,
+            subtext: c.designation || 'Staff'
+          }))
+        ];
+        this.filteredPurchasedByResults.set(defaults);
+        return;
+      }
+
+      // If text is entered, combine matching linked contacts and global business contacts
+      try {
+        const globalContacts = await this.businessContactService.searchContacts(query);
+        
+        const matchedLinked = currentLinked
+          .filter(c => c.contact_name.toLowerCase().includes(query.toLowerCase()))
+          .map(c => ({
+            uniqueId: `purchased-linked-${c.id}`,
+            type: 'linked' as const,
+            id: c.id,
+            displayName: c.contact_name,
+            subtext: c.designation || 'Staff'
+          }));
+
+        const matchedGlobal = globalContacts.map(c => ({
+          uniqueId: `purchased-global-${c.id}`,
+          type: 'global' as const,
+          id: c.id,
+          displayName: c.name,
+          subtext: c.roles && c.roles.length > 0 ? c.roles.join(', ') : 'Global Worker'
+        }));
+
+        this.filteredPurchasedByResults.set([...matchedLinked, ...matchedGlobal]);
+      } catch (err) {
+        console.error('Purchased By autocomplete search failed:', err);
       }
     });
 
@@ -179,6 +239,21 @@ export class InvoiceForm implements OnInit, OnDestroy {
           this.showDropdown.set(true);
         } else {
           this.showDropdown.set(false);
+        }
+      });
+    }
+
+    // Listen to purchasedBy input changes to fetch autocomplete search matches
+    const purchasedByControl = this.invoiceForm.get('purchasedBy');
+    if (purchasedByControl) {
+      purchasedByControl.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(val => {
+        const query = val || '';
+        this.purchasedBySearchQuery.set(query);
+        const matchesExact = this.filteredPurchasedByResults().some(r => r.displayName === query);
+        if (matchesExact) {
+          this.showPurchasedByDropdown.set(false);
+        } else {
+          this.showPurchasedByDropdown.set(true);
         }
       });
     }
@@ -321,6 +396,8 @@ export class InvoiceForm implements OnInit, OnDestroy {
     this.customerContacts.set([]);
     this.filteredResults.set([]);
     this.searchQuery.set('');
+    this.purchasedBySearchQuery.set('');
+    this.filteredPurchasedByResults.set([]);
     this.billingType.set('customer');
     this.initializeForm();
     this.setupFormSync();
@@ -362,6 +439,32 @@ export class InvoiceForm implements OnInit, OnDestroy {
     setTimeout(() => {
       this.showDropdown.set(false);
     }, 250);
+  }
+
+  protected onPurchasedBySearchInput(event: Event): void {
+    const val = (event.target as HTMLInputElement).value;
+    this.purchasedBySearchQuery.set(val);
+    this.showPurchasedByDropdown.set(true);
+  }
+
+  protected onPurchasedByFocus(): void {
+    const val = this.invoiceForm.get('purchasedBy')?.value || '';
+    this.purchasedBySearchQuery.set(val);
+    this.showPurchasedByDropdown.set(true);
+  }
+
+  protected onPurchasedByBlur(): void {
+    setTimeout(() => {
+      this.showPurchasedByDropdown.set(false);
+    }, 250);
+  }
+
+  protected selectPurchasedByResult(item: any): void {
+    this.invoiceForm.patchValue({
+      purchasedBy: item.displayName
+    });
+    this.purchasedBySearchQuery.set(item.displayName);
+    this.showPurchasedByDropdown.set(false);
   }
 
   protected async selectCustomer(customer: any): Promise<void> {
