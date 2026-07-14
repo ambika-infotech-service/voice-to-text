@@ -45,45 +45,58 @@ export class InvoiceForm implements OnInit, OnDestroy {
   // Toggle state between Customer vs. Business Contact
   protected readonly billingType = signal<'customer' | 'business_contact'>('customer');
 
-  // Customer search autocomplete UI states
-  protected readonly showCustomerDropdown = signal(false);
-  protected readonly filteredCustomers = signal<any[]>([]);
-  protected readonly customerSearchQuery = signal('');
+  // Unified search autocomplete UI states
+  protected readonly showDropdown = signal(false);
+  protected readonly filteredResults = signal<any[]>([]);
+  protected readonly searchQuery = signal('');
   protected readonly customerContacts = signal<any[]>([]);
 
-  // Business Contact search autocomplete UI states
-  protected readonly showContactDropdown = signal(false);
-  protected readonly filteredContacts = signal<any[]>([]);
-  protected readonly contactSearchQuery = signal('');
-
   constructor() {
-    // Effect to monitor customer search text changes
+    // Effect to monitor search text changes and combine results
     effect(async () => {
-      const query = this.customerSearchQuery();
+      const query = this.searchQuery();
       if (!query.trim()) {
-        this.filteredCustomers.set([]);
+        this.filteredResults.set([]);
         return;
       }
       try {
-        const results = await this.customerService.searchCustomer(query);
-        this.filteredCustomers.set(results);
-      } catch (err) {
-        console.error('Customer autocomplete search failed:', err);
-      }
-    });
+        const [customers, contacts] = await Promise.all([
+          this.customerService.searchCustomer(query),
+          this.businessContactService.searchContacts(query)
+        ]);
 
-    // Effect to monitor business contact search text changes
-    effect(async () => {
-      const query = this.contactSearchQuery();
-      if (!query.trim()) {
-        this.filteredContacts.set([]);
-        return;
-      }
-      try {
-        const results = await this.businessContactService.searchContacts(query);
-        this.filteredContacts.set(results);
+        const mappedCustomers = customers.map(c => ({
+          uniqueId: `customer-${c.id}`,
+          type: 'customer' as const,
+          id: c.id,
+          displayName: c.customer_name,
+          companyName: c.company_name || '',
+          mobile: c.mobile || '',
+          address: c.address || '',
+          city: c.city || '',
+          state: c.state || '',
+          pincode: c.pincode || '',
+          raw: c
+        }));
+
+        const mappedContacts = contacts.map(c => ({
+          uniqueId: `contact-${c.id}`,
+          type: 'business_contact' as const,
+          id: c.id,
+          displayName: c.name,
+          companyName: '',
+          mobile: c.mobile || '',
+          address: c.address || '',
+          city: c.city || '',
+          state: c.state || '',
+          pincode: c.pincode || '',
+          roles: c.roles || [],
+          raw: c
+        }));
+
+        this.filteredResults.set([...mappedCustomers, ...mappedContacts]);
       } catch (err) {
-        console.error('Business contact autocomplete search failed:', err);
+        console.error('Combined autocomplete search failed:', err);
       }
     });
 
@@ -145,31 +158,27 @@ export class InvoiceForm implements OnInit, OnDestroy {
     this.addItemRow();
     this.loadProducts();
 
+    // If customerId is set, fetch customer contacts
+    const currentInvoice = this.invoiceService.invoice();
+    if (currentInvoice.customerId) {
+      this.customerService.getContactsByCustomer(currentInvoice.customerId)
+        .then(contacts => this.customerContacts.set(contacts))
+        .catch(err => console.error('Failed to load initial customer contacts:', err));
+    }
+
     // Listen to customerName input changes to fetch autocomplete search matches
     const nameControl = this.invoiceForm.get('customerName');
     if (nameControl) {
       nameControl.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(val => {
         const query = val || '';
-        if (this.billingType() === 'customer') {
-          this.customerSearchQuery.set(query);
-          const matchesExact = this.filteredCustomers().some(c => c.customer_name === query);
-          if (matchesExact) {
-            this.showCustomerDropdown.set(false);
-          } else if (query.trim().length >= 2) {
-            this.showCustomerDropdown.set(true);
-          } else {
-            this.showCustomerDropdown.set(false);
-          }
+        this.searchQuery.set(query);
+        const matchesExact = this.filteredResults().some(r => r.displayName === query);
+        if (matchesExact) {
+          this.showDropdown.set(false);
+        } else if (query.trim().length >= 2) {
+          this.showDropdown.set(true);
         } else {
-          this.contactSearchQuery.set(query);
-          const matchesExact = this.filteredContacts().some(c => c.name === query);
-          if (matchesExact) {
-            this.showContactDropdown.set(false);
-          } else if (query.trim().length >= 2) {
-            this.showContactDropdown.set(true);
-          } else {
-            this.showContactDropdown.set(false);
-          }
+          this.showDropdown.set(false);
         }
       });
     }
@@ -182,14 +191,29 @@ export class InvoiceForm implements OnInit, OnDestroy {
 
   private initializeForm(): void {
     const currentInvoice = this.invoiceService.invoice();
+    const isContact = !!currentInvoice.contactId;
+
+    if (isContact) {
+      this.billingType.set('business_contact');
+    } else {
+      this.billingType.set('customer');
+    }
 
     this.invoiceForm = this.fb.group({
       invoiceNo: [currentInvoice.invoiceNo, Validators.required],
       invoiceDate: [currentInvoice.invoiceDate, Validators.required],
       customerName: [currentInvoice.customerName, [Validators.required, Validators.minLength(3)]],
       companyName: [currentInvoice.companyName || ''],
-      purchasedBy: [currentInvoice.purchasedBy || 'Self (Owner)', Validators.required],
-      customerMobile: [currentInvoice.customerMobile, [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
+      purchasedBy: [
+        currentInvoice.purchasedBy || (isContact ? '' : 'Self (Owner)'),
+        Validators.required
+      ],
+      customerMobile: [
+        currentInvoice.customerMobile,
+        isContact
+          ? [Validators.pattern(/^[0-9]{10}$/)]
+          : [Validators.required, Validators.pattern(/^[0-9]{10}$/)]
+      ],
       customerAddress: [currentInvoice.customerAddress],
       notes: [currentInvoice.notes],
       discount: [currentInvoice.discount, [Validators.required, Validators.min(0)]],
@@ -273,34 +297,7 @@ export class InvoiceForm implements OnInit, OnDestroy {
     });
   }
 
-  protected setBillingType(type: 'customer' | 'business_contact'): void {
-    this.billingType.set(type);
-
-    const mobileCtrl = this.invoiceForm.get('customerMobile');
-    if (type === 'business_contact') {
-      mobileCtrl?.setValidators([Validators.pattern(/^[0-9]{10}$/)]); // Mobile optional for business contacts
-    } else {
-      mobileCtrl?.setValidators([Validators.required, Validators.pattern(/^[0-9]{10}$/)]);
-    }
-    mobileCtrl?.updateValueAndValidity();
-
-    this.invoiceForm.patchValue({
-      customerName: '',
-      companyName: '',
-      purchasedBy: type === 'customer' ? 'Self (Owner)' : '',
-      customerMobile: '',
-      customerAddress: '',
-      customerId: null,
-      customerContactId: null,
-      contactId: null
-    }, { emitEvent: false });
-
-    this.customerSearchQuery.set('');
-    this.contactSearchQuery.set('');
-    this.customerContacts.set([]);
-    this.filteredCustomers.set([]);
-    this.filteredContacts.set([]);
-  }
+  // Removed manual setBillingType since we infer it from selected autocomplete item.
 
   protected onGeneratePdf(): void {
     if (this.invoiceForm.invalid) {
@@ -322,7 +319,8 @@ export class InvoiceForm implements OnInit, OnDestroy {
     this.invoiceForm.reset();
     this.invoiceService.resetInvoice();
     this.customerContacts.set([]);
-    this.filteredContacts.set([]);
+    this.filteredResults.set([]);
+    this.searchQuery.set('');
     this.billingType.set('customer');
     this.initializeForm();
     this.setupFormSync();
@@ -350,35 +348,29 @@ export class InvoiceForm implements OnInit, OnDestroy {
 
   protected onCustomerSearchInput(event: Event): void {
     const val = (event.target as HTMLInputElement).value;
-    if (this.billingType() === 'customer') {
-      this.customerSearchQuery.set(val);
-      this.showCustomerDropdown.set(true);
-    } else {
-      this.contactSearchQuery.set(val);
-      this.showContactDropdown.set(true);
-    }
+    this.searchQuery.set(val);
+    this.showDropdown.set(true);
   }
 
   protected onCustomerFocus(): void {
-    if (this.billingType() === 'customer') {
-      const val = this.invoiceForm.get('customerName')?.value || '';
-      this.customerSearchQuery.set(val);
-      this.showCustomerDropdown.set(true);
-    } else {
-      const val = this.invoiceForm.get('customerName')?.value || '';
-      this.contactSearchQuery.set(val);
-      this.showContactDropdown.set(true);
-    }
+    const val = this.invoiceForm.get('customerName')?.value || '';
+    this.searchQuery.set(val);
+    this.showDropdown.set(true);
   }
 
   protected onCustomerBlur(): void {
     setTimeout(() => {
-      this.showCustomerDropdown.set(false);
-      this.showContactDropdown.set(false);
+      this.showDropdown.set(false);
     }, 250);
   }
 
   protected async selectCustomer(customer: any): Promise<void> {
+    this.billingType.set('customer');
+
+    const mobileCtrl = this.invoiceForm.get('customerMobile');
+    mobileCtrl?.setValidators([Validators.required, Validators.pattern(/^[0-9]{10}$/)]);
+    mobileCtrl?.updateValueAndValidity();
+
     let fullAddress = customer.address || '';
     const addressParts = [customer.city, customer.state, customer.pincode].filter(p => !!p);
     if (addressParts.length > 0) {
@@ -404,11 +396,17 @@ export class InvoiceForm implements OnInit, OnDestroy {
       contactId: null
     }, { emitEvent: false });
 
-    this.customerSearchQuery.set(customer.customer_name);
-    this.showCustomerDropdown.set(false);
+    this.searchQuery.set(customer.customer_name);
+    this.showDropdown.set(false);
   }
 
   protected selectBusinessContact(contact: any): void {
+    this.billingType.set('business_contact');
+
+    const mobileCtrl = this.invoiceForm.get('customerMobile');
+    mobileCtrl?.setValidators([Validators.pattern(/^[0-9]{10}$/)]);
+    mobileCtrl?.updateValueAndValidity();
+
     let fullAddress = contact.address || '';
     const addressParts = [contact.city, contact.state, contact.pincode].filter(p => !!p);
     if (addressParts.length > 0) {
@@ -426,8 +424,16 @@ export class InvoiceForm implements OnInit, OnDestroy {
       contactId: contact.id
     }, { emitEvent: false });
 
-    this.contactSearchQuery.set(contact.name);
-    this.showContactDropdown.set(false);
+    this.searchQuery.set(contact.name);
+    this.showDropdown.set(false);
+  }
+
+  protected selectResult(item: any): void {
+    if (item.type === 'customer') {
+      this.selectCustomer(item.raw);
+    } else {
+      this.selectBusinessContact(item.raw);
+    }
   }
 
   private async loadProducts(): Promise<void> {

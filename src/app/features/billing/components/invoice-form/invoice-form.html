@@ -5,181 +5,149 @@
             <h3 class="card-title h6 text-primary text-uppercase font-weight-bold mb-0">Customer & Invoice Details</h3>
         </div>
         <div class="card-body pt-0">
-            <!-- Billing Category Toggle -->
-            <div class="row mb-4">
-                <div class="col-12">
-                    <span class="text-secondary small font-weight-semibold d-block mb-2">Invoice For</span>
-                    <div class="btn-group" role="group" aria-label="Billing Type Radio Selection">
-                        <input type="radio" class="btn-check" name="billingType" id="billingCustomer" 
-                               [checked]="billingType() === 'customer'" (change)="setBillingType('customer')" />
-                        <label class="btn btn-sm btn-outline-primary px-3 py-2 font-weight-semibold" for="billingCustomer">
-                            <i class="bi bi-building"></i> Customer Account
-                        </label>
-
-                        <input type="radio" class="btn-check" name="billingType" id="billingContact" 
-                               [checked]="billingType() === 'business_contact'" (change)="setBillingType('business_contact')" />
-                        <label class="btn btn-sm btn-outline-primary px-3 py-2 font-weight-semibold" for="billingContact">
-                            <i class="bi bi-person-badge"></i> Business Contact (Global)
-                        </label>
-                    </div>
-                </div>
-            </div>
-
             <!-- Fields Grid -->
             <div class="row g-3">
-                <!-- Condition A: Customer Selected -->
-                @if (billingType() === 'customer') {
-                    <!-- Customer Name Search -->
-                    <div class="col-md-6 position-relative">
-                        <label for="customerName" class="form-label small font-weight-bold text-secondary">Customer Name *</label>
-                        <input id="customerName" type="text" class="form-control form-control-sm"
-                            formControlName="customerName" placeholder="Search by name, company, mobile..."
-                            autocomplete="off"
-                            (input)="onCustomerSearchInput($event)" (focus)="onCustomerFocus()" (blur)="onCustomerBlur()">
-                        
-                        @if (showCustomerDropdown() && filteredCustomers().length > 0) {
-                        <ul class="dropdown-menu show position-absolute w-100 shadow border-secondary-subtle overflow-y-auto"
-                            style="max-height: 200px; z-index: 1050; left: 0; top: 100%;">
-                            @for (cust of filteredCustomers(); track cust.id) {
-                            <li>
-                                <button type="button"
-                                    class="dropdown-item small d-flex flex-column py-2 px-3 border-bottom border-light-subtle align-items-start"
-                                    (mousedown)="selectCustomer(cust)">
-                                    <span class="text-dark font-weight-bold">
-                                        {{ cust.customer_name }}
-                                        @if (cust.company_name) {
-                                            <span class="text-secondary font-weight-normal font-italic small"> - {{ cust.company_name }}</span>
-                                        }
+                <!-- Customer Name Search (Common) -->
+                <div class="col-md-6 position-relative">
+                    <label for="customerName" class="form-label small font-weight-bold text-secondary">
+                        @if (billingType() === 'customer') { Customer Name * } @else { Business Contact * }
+                    </label>
+                    <input id="customerName" type="text" class="form-control form-control-sm"
+                        formControlName="customerName" placeholder="Search by name, company, mobile, role..."
+                        autocomplete="off" (input)="onCustomerSearchInput($event)" (focus)="onCustomerFocus()"
+                        (blur)="onCustomerBlur()">
+
+                    @if (showDropdown() && filteredResults().length > 0) {
+                    <ul class="dropdown-menu show position-absolute w-100 shadow border-secondary-subtle overflow-y-auto"
+                        style="max-height: 200px; z-index: 1050; left: 0; top: 100%;">
+                        @for (item of filteredResults(); track item.uniqueId) {
+                        <li>
+                            <button type="button"
+                                class="dropdown-item small d-flex flex-column py-2 px-3 border-bottom border-light-subtle align-items-start"
+                                (mousedown)="selectResult(item)">
+                                <span class="text-dark font-weight-bold d-flex align-items-center gap-2">
+                                    @if (item.type === 'customer') {
+                                    <span
+                                        class="badge bg-primary-subtle text-primary border px-2 py-0.5 rounded-pill extra-small"
+                                        style="font-size: 0.65rem;">
+                                        <i class="bi bi-building"></i> Customer
                                     </span>
-                                    @if (cust.mobile || cust.gst_number) {
-                                        <span class="text-muted extra-small mt-0.5" style="font-size: 0.725rem;">
-                                            @if (cust.mobile) { 📞 {{ cust.mobile }} }
-                                            @if (cust.gst_number) { <span class="ms-2">GST: {{ cust.gst_number }}</span> }
-                                        </span>
-                                    }
-                                </button>
-                            </li>
-                            }
-                        </ul>
-                        }
-                        @if (invoiceForm.get('customerName')?.touched && invoiceForm.get('customerName')?.invalid) {
-                        <div class="text-danger small mt-1">Name is required (min 3 characters)</div>
-                        }
-                    </div>
-
-                    <!-- Company Name -->
-                    <div class="col-md-6">
-                        <label for="companyName" class="form-label small font-weight-bold text-secondary">Company Name</label>
-                        <input id="companyName" type="text" class="form-control form-control-sm"
-                            formControlName="companyName" placeholder="e.g. Acme Hardware Corp">
-                    </div>
-
-                    <!-- Customer Mobile -->
-                    <div class="col-md-3">
-                        <label for="customerMobile" class="form-label small font-weight-bold text-secondary">Mobile No. *</label>
-                        <input id="customerMobile" type="text" class="form-control form-control-sm"
-                            formControlName="customerMobile" placeholder="10-digit number">
-                        @if (invoiceForm.get('customerMobile')?.touched && invoiceForm.get('customerMobile')?.invalid) {
-                        <div class="text-danger small mt-1">Provide a valid 10-digit mobile number</div>
-                        }
-                    </div>
-
-                    <!-- Purchased By Customer Contact -->
-                    <div class="col-md-3">
-                        <label for="purchasedBy" class="form-label small font-weight-bold text-secondary">Purchased By *</label>
-                        <select id="purchasedBy" class="form-select form-select-sm" formControlName="purchasedBy">
-                            <option value="Self (Owner)">Self (Owner)</option>
-                            @for (contact of customerContacts(); track contact.id) {
-                                <option [value]="contact.contact_name">{{ contact.contact_name }} ({{ contact.designation || 'Staff' }})</option>
-                            }
-                        </select>
-                    </div>
-                } @else {
-                    <!-- Condition B: Business Contact Selected -->
-                    <!-- Business Contact Search Lookup -->
-                    <div class="col-md-6 position-relative">
-                        <label for="contactSearchName" class="form-label small font-weight-bold text-secondary">Business Contact *</label>
-                        <input id="contactSearchName" type="text" class="form-control form-control-sm"
-                            formControlName="customerName" placeholder="Search contacts by name, role, city..."
-                            autocomplete="off"
-                            (input)="onCustomerSearchInput($event)" (focus)="onCustomerFocus()" (blur)="onCustomerBlur()">
-                        
-                        @if (showContactDropdown() && filteredContacts().length > 0) {
-                        <ul class="dropdown-menu show position-absolute w-100 shadow border-secondary-subtle overflow-y-auto"
-                            style="max-height: 200px; z-index: 1050; left: 0; top: 100%;">
-                            @for (contact of filteredContacts(); track contact.id) {
-                            <li>
-                                <button type="button"
-                                    class="dropdown-item small d-flex flex-column py-2 px-3 border-bottom border-light-subtle align-items-start"
-                                    (mousedown)="selectBusinessContact(contact)">
-                                    <span class="text-dark font-weight-bold">
-                                        {{ contact.name }}
+                                    } @else {
+                                    <span
+                                        class="badge bg-info-subtle text-info border px-2 py-0.5 rounded-pill extra-small"
+                                        style="font-size: 0.65rem;">
+                                        <i class="bi bi-person-badge"></i> Contact
                                     </span>
-                                    @if (contact.roles && contact.roles.length > 0) {
-                                        <span class="text-secondary small mt-0.5">
-                                            🛠️ {{ contact.roles.join(', ') }}
-                                        </span>
                                     }
-                                    @if (contact.mobile || contact.city) {
-                                        <span class="text-muted extra-small mt-0.5" style="font-size: 0.725rem;">
-                                            @if (contact.mobile) { 📞 {{ contact.mobile }} }
-                                            @if (contact.city) { <span class="ms-2">📍 {{ contact.city }}</span> }
-                                        </span>
+                                    {{ item.displayName }}
+                                    @if (item.companyName) {
+                                    <span class="text-secondary font-weight-normal font-italic small"> - {{
+                                        item.companyName }}</span>
                                     }
-                                </button>
-                            </li>
-                            }
-                        </ul>
-                        }
-                        @if (invoiceForm.get('customerName')?.touched && invoiceForm.get('customerName')?.invalid) {
-                        <div class="text-danger small mt-1">Contact selection is required</div>
-                        }
-                    </div>
-
-                    <!-- Contact Mobile (Optional) -->
-                    <div class="col-md-3">
-                        <label for="contactMobile" class="form-label small font-weight-bold text-secondary">Mobile No.</label>
-                        <input id="contactMobile" type="text" class="form-control form-control-sm"
-                            formControlName="customerMobile" placeholder="10-digit number">
-                        @if (invoiceForm.get('customerMobile')?.touched && invoiceForm.get('customerMobile')?.invalid) {
-                        <div class="text-danger small mt-1">Provide a valid 10-digit mobile number</div>
-                        }
-                    </div>
-
-                    <!-- Selected Contact Profession Roles Display -->
-                    <div class="col-md-3">
-                        <span class="form-label d-block small font-weight-bold text-secondary mb-1.5">Contact Profession Roles</span>
-                        <div class="d-flex flex-wrap gap-1 mt-1">
-                            @if (invoiceForm.get('purchasedBy')?.value) {
-                                @for (role of invoiceForm.get('purchasedBy')?.value.split(', '); track role) {
-                                    <span class="badge bg-primary-subtle text-primary border px-2.5 py-1.5 rounded-pill small">
-                                        {{ role }}
-                                    </span>
+                                </span>
+                                @if (item.roles && item.roles.length > 0) {
+                                <span class="text-secondary small mt-0.5">
+                                    🛠️ {{ item.roles.join(', ') }}
+                                </span>
                                 }
-                            } @else {
-                                <span class="text-muted small font-italic py-1">No roles listed</span>
-                            }
-                        </div>
+                                @if (item.mobile || item.city) {
+                                <span class="text-muted extra-small mt-0.5" style="font-size: 0.725rem;">
+                                    @if (item.mobile) { 📞 {{ item.mobile }} }
+                                    @if (item.city) { <span class="ms-2">📍 {{ item.city }}</span> }
+                                </span>
+                                }
+                            </button>
+                        </li>
+                        }
+                    </ul>
+                    }
+                    @if (invoiceForm.get('customerName')?.touched && invoiceForm.get('customerName')?.invalid) {
+                    <div class="text-danger small mt-1">Name is required (min 3 characters)</div>
+                    }
+                </div>
+
+                @if (billingType() === 'customer') {
+                <!-- Company Name -->
+                <div class="col-md-6">
+                    <label for="companyName" class="form-label small font-weight-bold text-secondary">Company
+                        Name</label>
+                    <input id="companyName" type="text" class="form-control form-control-sm"
+                        formControlName="companyName" placeholder="e.g. Acme Hardware Corp">
+                </div>
+
+                <!-- Customer Mobile -->
+                <div class="col-md-3">
+                    <label for="customerMobile" class="form-label small font-weight-bold text-secondary">Mobile No.
+                        *</label>
+                    <input id="customerMobile" type="text" class="form-control form-control-sm"
+                        formControlName="customerMobile" placeholder="10-digit number">
+                    @if (invoiceForm.get('customerMobile')?.touched && invoiceForm.get('customerMobile')?.invalid) {
+                    <div class="text-danger small mt-1">Provide a valid 10-digit mobile number</div>
+                    }
+                </div>
+
+                <!-- Purchased By Customer Contact -->
+                <div class="col-md-3">
+                    <label for="purchasedBy" class="form-label small font-weight-bold text-secondary">Purchased By
+                        *</label>
+                    <select id="purchasedBy" class="form-select form-select-sm" formControlName="purchasedBy">
+                        <option value="Self (Owner)">Self (Owner)</option>
+                        @for (contact of customerContacts(); track contact.id) {
+                        <option [value]="contact.contact_name">{{ contact.contact_name }} ({{ contact.designation ||
+                            'Staff' }})</option>
+                        }
+                    </select>
+                </div>
+                } @else {
+                <!-- Contact Mobile (Optional) -->
+                <div class="col-md-3">
+                    <label for="contactMobile" class="form-label small font-weight-bold text-secondary">Mobile
+                        No.</label>
+                    <input id="contactMobile" type="text" class="form-control form-control-sm"
+                        formControlName="customerMobile" placeholder="10-digit number">
+                    @if (invoiceForm.get('customerMobile')?.touched && invoiceForm.get('customerMobile')?.invalid) {
+                    <div class="text-danger small mt-1">Provide a valid 10-digit mobile number</div>
+                    }
+                </div>
+
+                <!-- Selected Contact Profession Roles Display -->
+                <div class="col-md-3">
+                    <span class="form-label d-block small font-weight-bold text-secondary mb-1.5">Contact Profession
+                        Roles</span>
+                    <div class="d-flex flex-wrap gap-1 mt-1">
+                        @if (invoiceForm.get('purchasedBy')?.value) {
+                        @for (role of invoiceForm.get('purchasedBy')?.value.split(', '); track role) {
+                        <span class="badge bg-primary-subtle text-primary border px-2.5 py-1.5 rounded-pill small">
+                            {{ role }}
+                        </span>
+                        }
+                        } @else {
+                        <span class="text-muted small font-italic py-1">No roles listed</span>
+                        }
                     </div>
+                </div>
                 }
 
                 <!-- Common Metadata Fields -->
                 <!-- Invoice No -->
                 <div class="col-md-3">
-                    <label for="invoiceNo" class="form-label small font-weight-bold text-secondary">Invoice No. *</label>
+                    <label for="invoiceNo" class="form-label small font-weight-bold text-secondary">Invoice No.
+                        *</label>
                     <input id="invoiceNo" type="text" class="form-control form-control-sm" formControlName="invoiceNo">
                 </div>
 
                 <!-- Invoice Date -->
                 <div class="col-md-3">
-                    <label for="invoiceDate" class="form-label small font-weight-bold text-secondary">Invoice Date *</label>
+                    <label for="invoiceDate" class="form-label small font-weight-bold text-secondary">Invoice Date
+                        *</label>
                     <input id="invoiceDate" type="date" class="form-control form-control-sm"
                         formControlName="invoiceDate">
                 </div>
 
                 <!-- Customer Address / Details -->
                 <div class="col-12">
-                    <label for="customerAddress" class="form-label small font-weight-bold text-secondary">Billing Address</label>
+                    <label for="customerAddress" class="form-label small font-weight-bold text-secondary">Billing
+                        Address</label>
                     <textarea id="customerAddress" rows="2" class="form-control form-control-sm"
                         formControlName="customerAddress" placeholder="Complete address detail..."></textarea>
                 </div>
@@ -248,7 +216,8 @@
                 <div class="card-body d-flex flex-column gap-3">
                     <!-- Discount Field -->
                     <div>
-                        <label for="discount" class="form-label small font-weight-bold text-secondary">Discount Amount (₹)</label>
+                        <label for="discount" class="form-label small font-weight-bold text-secondary">Discount Amount
+                            (₹)</label>
                         <div class="input-group input-group-sm" style="max-width: 250px;">
                             <span class="input-group-text bg-light text-muted">₹</span>
                             <input id="discount" type="number" class="form-control text-end" formControlName="discount"
@@ -261,7 +230,8 @@
 
                     <!-- Invoice Notes / Terms -->
                     <div>
-                        <label for="notes" class="form-label small font-weight-bold text-secondary">Invoice Notes / Terms</label>
+                        <label for="notes" class="form-label small font-weight-bold text-secondary">Invoice Notes /
+                            Terms</label>
                         <textarea id="notes" rows="3" class="form-control form-control-sm" formControlName="notes"
                             placeholder="Notes or terms displayed on print footer..."></textarea>
                     </div>
@@ -276,7 +246,8 @@
     </div>
 
     <!-- Action Bar Buttons -->
-    <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm border border-light-subtle mt-2">
+    <div
+        class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm border border-light-subtle mt-2">
         <button type="button" class="btn btn-outline-secondary px-4 py-2 font-weight-bold" (click)="onReset()">
             Reset Billing Form
         </button>
