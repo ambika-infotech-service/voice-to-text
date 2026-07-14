@@ -52,7 +52,7 @@
                 </div>
 
                 <!-- Customer Mobile -->
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label for="customerMobile" class="form-label small font-weight-bold text-secondary">Mobile No. *</label>
                     <input id="customerMobile" type="text" class="form-control form-control-sm"
                         formControlName="customerMobile" placeholder="10-digit number">
@@ -61,14 +61,25 @@
                     }
                 </div>
 
+                <!-- Purchased By -->
+                <div class="col-md-3">
+                    <label for="purchasedBy" class="form-label small font-weight-bold text-secondary">Purchased By *</label>
+                    <select id="purchasedBy" class="form-select form-select-sm" formControlName="purchasedBy">
+                        <option value="Self (Owner)">Self (Owner)</option>
+                        @for (worker of customerWorkers(); track worker.id) {
+                            <option [value]="worker.worker_name">{{ worker.worker_name }} ({{ worker.designation || 'Staff' }})</option>
+                        }
+                    </select>
+                </div>
+
                 <!-- Invoice No -->
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label for="invoiceNo" class="form-label small font-weight-bold text-secondary">Invoice No. *</label>
                     <input id="invoiceNo" type="text" class="form-control form-control-sm" formControlName="invoiceNo">
                 </div>
 
                 <!-- Invoice Date -->
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label for="invoiceDate" class="form-label small font-weight-bold text-secondary">Invoice Date *</label>
                     <input id="invoiceDate" type="date" class="form-control form-control-sm"
                         formControlName="invoiceDate">

@@ -54,6 +54,7 @@
                     <div class="text-secondary font-weight-semibold text-truncate small">{{ invoice().companyName }}</div>
                 }
                 <div class="text-muted">Mobile: {{ invoice().customerMobile || 'N/A' }}</div>
+                <div class="text-muted">Purchased By: <strong>{{ invoice().purchasedBy || 'Self (Owner)' }}</strong></div>
                 <div class="text-muted text-truncate" style="max-width: 100%;">Addr: {{ invoice().customerAddress ||
                     'Customer Address N/A' }}</div>
             </div>

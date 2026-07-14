@@ -18,6 +18,7 @@ export interface Invoice {
   invoiceDate: string;
   customerName: string;
   companyName?: string;
+  purchasedBy: string;
   customerMobile: string;
   customerAddress: string;
   notes: string;

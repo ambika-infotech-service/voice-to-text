@@ -45,6 +45,7 @@ export class InvoiceForm implements OnInit, OnDestroy {
   protected readonly showCustomerDropdown = signal(false);
   protected readonly filteredCustomers = signal<any[]>([]);
   protected readonly customerSearchQuery = signal('');
+  protected readonly customerWorkers = signal<any[]>([]);
 
   constructor() {
     // Effect to monitor customer search text changes
@@ -156,6 +157,7 @@ export class InvoiceForm implements OnInit, OnDestroy {
       invoiceDate: [currentInvoice.invoiceDate, Validators.required],
       customerName: [currentInvoice.customerName, [Validators.required, Validators.minLength(3)]],
       companyName: [currentInvoice.companyName || ''],
+      purchasedBy: [currentInvoice.purchasedBy || 'Self (Owner)', Validators.required],
       customerMobile: [currentInvoice.customerMobile, [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
       customerAddress: [currentInvoice.customerAddress],
       notes: [currentInvoice.notes],
@@ -215,6 +217,7 @@ export class InvoiceForm implements OnInit, OnDestroy {
         invoiceDate: value.invoiceDate,
         customerName: value.customerName,
         companyName: value.companyName || '',
+        purchasedBy: value.purchasedBy || 'Self (Owner)',
         customerMobile: value.customerMobile,
         customerAddress: value.customerAddress,
         notes: value.notes,
@@ -245,6 +248,7 @@ export class InvoiceForm implements OnInit, OnDestroy {
   protected onReset(): void {
     this.invoiceForm.reset();
     this.invoiceService.resetInvoice();
+    this.customerWorkers.set([]);
     this.initializeForm();
     this.setupFormSync();
     this.addItemRow();
@@ -287,16 +291,26 @@ export class InvoiceForm implements OnInit, OnDestroy {
     }, 250);
   }
 
-  protected selectCustomer(customer: any): void {
+  protected async selectCustomer(customer: any): Promise<void> {
     let fullAddress = customer.address || '';
     const addressParts = [customer.city, customer.state, customer.pincode].filter(p => !!p);
     if (addressParts.length > 0) {
       fullAddress += (fullAddress ? '\n' : '') + addressParts.join(', ');
     }
 
+    // Retrieve and populate workers associated with this customer
+    try {
+      const list = await this.customerService.getWorkersByCustomer(customer.id);
+      this.customerWorkers.set(list);
+    } catch (err) {
+      console.error('Failed to load customer workers:', err);
+      this.customerWorkers.set([]);
+    }
+
     this.invoiceForm.patchValue({
       customerName: customer.customer_name,
       companyName: customer.company_name || '',
+      purchasedBy: 'Self (Owner)',
       customerMobile: customer.mobile || '',
       customerAddress: fullAddress
     }, { emitEvent: false }); // Avoid infinite validation trigger loops

@@ -19,6 +19,7 @@ export class InvoiceService {
       invoiceDate: dateStr,
       customerName: '',
       companyName: '',
+      purchasedBy: 'Self (Owner)',
       customerMobile: '',
       customerAddress: '',
       notes: 'Thank you for shopping with us!', // 'Goods once sold cannot be returned.',
