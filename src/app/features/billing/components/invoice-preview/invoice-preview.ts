@@ -1,7 +1,7 @@
-import { Component, inject, computed } from '@angular/core';
-import { InvoiceService } from '../../services/invoice.service';
+import { DecimalPipe } from '@angular/common';
+import { Component, computed, inject } from '@angular/core';
 import { CalculationService } from '../../services/calculation.service';
-import { DecimalPipe, UpperCasePipe } from '@angular/common';
+import { InvoiceService } from '../../services/invoice.service';
 
 /**
  * Controller component for the high-fidelity A4 Invoice Preview.
@@ -10,7 +10,7 @@ import { DecimalPipe, UpperCasePipe } from '@angular/common';
  */
 @Component({
   selector: 'app-invoice-preview',
-  imports: [DecimalPipe, UpperCasePipe],
+  imports: [DecimalPipe],
   templateUrl: './invoice-preview.html',
   styleUrl: './invoice-preview.scss'
 })

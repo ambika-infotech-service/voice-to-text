@@ -152,6 +152,11 @@
                         <span class="text-secondary">Discount:</span>
                         <span class="text-danger">(-) ₹{{ invoice().discount | number:'1.2-2' }}</span>
                     </div>
+                    <!--
+                    <div class="d-flex justify-content-between mb-1 border-top pt-1">
+                        <span class="text-secondary">Taxable Value:</span>
+                        <span class="text-dark font-weight-bold">₹{{ invoice().taxableAmount | number:'1.2-2' }}</span>
+                    </div>
                     <div class="d-flex justify-content-between mb-1">
                         <span class="text-secondary">CGST (9%):</span>
                         <span class="text-dark">₹{{ (invoice().gst / 2) | number:'1.2-2' }}</span>
@@ -160,6 +165,7 @@
                         <span class="text-secondary">SGST (9%):</span>
                         <span class="text-dark">₹{{ (invoice().gst / 2) | number:'1.2-2' }}</span>
                     </div>
+                    -->
                     <div class="d-flex justify-content-between mb-2 border-top pt-2">
                         <span class="text-secondary">Round Off:</span>
                         <span class="text-muted">{{ invoice().roundOff >= 0 ? '+' : '' }}₹{{ invoice().roundOff |

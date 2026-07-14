@@ -47,8 +47,9 @@ describe('InvoiceService', () => {
     expect(inv.items.length).toBe(1);
     expect(inv.items[0].amount).toBe(500); // 5 * 100
     expect(inv.subtotal).toBe(500);
-    expect(inv.gst).toBe(90); // 18% of 500
-    expect(inv.grandTotal).toBe(590);
+    expect(inv.taxableAmount).toBe(423.73); // 500 / 1.18
+    expect(inv.gst).toBe(76.27); // 500 - 423.73
+    expect(inv.grandTotal).toBe(500);
   });
 
   it('should reset state back to defaults on resetInvoice()', () => {

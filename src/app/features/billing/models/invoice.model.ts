@@ -23,6 +23,7 @@ export interface Invoice {
   items: InvoiceItem[];
   subtotal: number;
   discount: number;       // Discount amount in Rupees (₹)
+  taxableAmount: number;  // Base taxable amount after discount and before GST
   gst: number;            // GST amount in Rupees (₹) (standard 18% on taxable value)
   roundOff: number;       // Rounding adjustment (₹) to make grandTotal integer
   grandTotal: number;     // Grand Total in Rupees (₹)

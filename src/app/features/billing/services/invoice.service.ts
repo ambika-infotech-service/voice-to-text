@@ -24,6 +24,7 @@ export class InvoiceService {
       items: [],
       subtotal: 0,
       discount: 0,
+      taxableAmount: 0,
       gst: 0,
       roundOff: 0,
       grandTotal: 0

@@ -28,23 +28,27 @@ export class CalculationService {
     discount: number
   ): {
     subtotal: number;
+    taxableAmount: number;
     gst: number;
     roundOff: number;
     grandTotal: number;
   } {
-    // 1. Calculate subtotal
+    // 1. Calculate subtotal (inclusive of GST)
     const subtotal = items.reduce((sum, item) => sum + (item.amount || 0), 0);
     const roundedSubtotal = Math.round(subtotal * 100) / 100;
 
-    // 2. Taxable Value = Subtotal - Discount
+    // 2. Total Inclusive Value = Subtotal - Discount
     const validDiscount = Math.max(0, Math.min(discount, roundedSubtotal));
-    const taxableValue = Math.max(0, roundedSubtotal - validDiscount);
+    const totalInclusive = Math.max(0, roundedSubtotal - validDiscount);
 
-    // 3. GST = 18% of taxable value
-    const gst = Math.round(taxableValue * 0.18 * 100) / 100;
+    // 3. Extract Taxable Amount and standard 18% GST (already included in prices)
+    // Base Taxable Value = totalInclusive / 1.18
+    // GST = totalInclusive - taxableAmount
+    const taxableAmount = Math.round((totalInclusive / 1.18) * 100) / 100;
+    const gst = Math.round((totalInclusive - taxableAmount) * 100) / 100;
 
-    // 4. Raw Grand Total
-    const rawGrandTotal = taxableValue + gst;
+    // 4. Raw Grand Total (inclusive)
+    const rawGrandTotal = totalInclusive;
 
     // 5. Rounded Grand Total (Integer)
     const grandTotal = Math.round(rawGrandTotal);
@@ -54,6 +58,7 @@ export class CalculationService {
 
     return {
       subtotal: roundedSubtotal,
+      taxableAmount,
       gst,
       roundOff,
       grandTotal
