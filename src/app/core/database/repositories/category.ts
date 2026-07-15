@@ -12,11 +12,18 @@ export class CategoryRepository {
   /**
    * Inserts a new category.
    * @param category The Category object to insert.
-   * @returns The generated database Id.
+   * @returns The generated database id.
    */
   public async insert(category: Category): Promise<number> {
-    const sql = `INSERT INTO Category (Name, IsActive, CreatedAt) VALUES (?, ?, ?);`;
-    const res = await this.db.run(sql, [category.Name, category.IsActive, category.CreatedAt]);
+    const sql = `INSERT INTO Category (name, displayOrder, isActive, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?);`;
+    const now = new Date().toISOString();
+    const res = await this.db.run(sql, [
+      category.name,
+      category.displayOrder || 0,
+      category.isActive,
+      category.createdAt || now,
+      now
+    ]);
     return res.lastId ?? -1;
   }
 
@@ -25,37 +32,38 @@ export class CategoryRepository {
    * @param category The Category object containing updated properties.
    */
   public async update(category: Category): Promise<void> {
-    if (category.Id === undefined) {
-      throw new Error('Category Id must be defined for updates.');
+    if (category.id === undefined) {
+      throw new Error('Category id must be defined for updates.');
     }
-    const sql = `UPDATE Category SET Name = ?, IsActive = ? WHERE Id = ?;`;
-    await this.db.run(sql, [category.Name, category.IsActive, category.Id]);
+    const sql = `UPDATE Category SET name = ?, isActive = ?, updatedAt = ? WHERE id = ?;`;
+    const now = new Date().toISOString();
+    await this.db.run(sql, [category.name, category.isActive, now, category.id]);
   }
 
   /**
-   * Deletes a category by its unique Id.
-   * @param id The category Id.
+   * Deletes a category by its unique id.
+   * @param id The category id.
    */
   public async delete(id: number): Promise<void> {
-    const sql = `DELETE FROM Category WHERE Id = ?;`;
+    const sql = `DELETE FROM Category WHERE id = ?;`;
     await this.db.run(sql, [id]);
   }
 
   /**
-   * Retrieves a single category by Id.
-   * @param id The category Id.
+   * Retrieves a single category by id.
+   * @param id The category id.
    */
   public async getById(id: number): Promise<Category | null> {
-    const sql = `SELECT * FROM Category WHERE Id = ? LIMIT 1;`;
+    const sql = `SELECT * FROM Category WHERE id = ? LIMIT 1;`;
     const rows = await this.db.query<Category>(sql, [id]);
     return rows.length > 0 ? rows[0] : null;
   }
 
   /**
-   * Retrieves all categories ordered by Name.
+   * Retrieves all categories ordered by name.
    */
   public async getAll(): Promise<Category[]> {
-    const sql = `SELECT * FROM Category ORDER BY Name ASC;`;
+    const sql = `SELECT * FROM Category ORDER BY name ASC;`;
     return this.db.query<Category>(sql);
   }
 
@@ -63,7 +71,7 @@ export class CategoryRepository {
    * Retrieves active categories.
    */
   public async getAllActive(): Promise<Category[]> {
-    const sql = `SELECT * FROM Category WHERE IsActive = 1 ORDER BY Name ASC;`;
+    const sql = `SELECT * FROM Category WHERE isActive = 1 ORDER BY name ASC;`;
     return this.db.query<Category>(sql);
   }
 }

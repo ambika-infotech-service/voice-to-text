@@ -32,7 +32,7 @@ export class ProductSearchService {
   private searchableProducts: SearchableProduct[] = [];
   private isLoaded = false;
 
-  // Extensible scoring processor registry (Stage 11: Future Ready)
+  // Extensible scoring processor registry
   public readonly scoringProcessors: ScoringProcessor[] = [
     new ExactNameScoringProcessor(),
     new ExactAliasScoringProcessor(),
@@ -44,7 +44,7 @@ export class ProductSearchService {
   ];
 
   /**
-   * Loads all active products, their categories, brands, and aliases from SQLite,
+   * Loads all active products, their categories, brands, and variants from SQLite,
    * compiles their in-memory keyword indexes, and caches them.
    * Only queries SQLite when explicitly triggered (e.g. on data updates).
    */
@@ -53,83 +53,158 @@ export class ProductSearchService {
 
     const sql = `
       SELECT 
-        p.Id, 
-        p.SKU, 
-        p.DisplayName, 
-        p.Barcode, 
-        p.HSNCode, 
-        p.GST, 
-        p.SellingPrice, 
-        p.Unit, 
-        p.IsActive, 
-        p.CreatedAt,
-        p.CategoryId,
-        c.Name as CategoryName,
-        (
-          SELECT av.DisplayValue 
-          FROM ProductAttribute pa2
-          JOIN AttributeValue av ON pa2.AttributeValueId = av.Id
-          JOIN Attribute a ON av.AttributeId = a.Id
-          WHERE pa2.ProductId = p.Id AND a.Name = 'Brand'
-          LIMIT 1
-        ) as BrandName,
-        (
-          SELECT GROUP_CONCAT(al.Keyword, '|')
-          FROM ProductAttribute pa3
-          JOIN Alias al ON pa3.AttributeValueId = al.AttributeValueId
-          WHERE pa3.ProductId = p.Id
-        ) as AliasesStr
-      FROM Product p
-      LEFT JOIN Category c ON p.CategoryId = c.Id
-      WHERE p.IsActive = 1;
+        v.id AS variantId,
+        v.sku AS variantSku,
+        v.productId,
+        v.sizeMm,
+        v.sizeInch,
+        v.weightKg,
+        v.pressure,
+        v.schedule,
+        v.pipeLength,
+        v.capacity,
+        v.color,
+        v.extraSpecification,
+        v.purchasePrice,
+        v.sellingPrice,
+        v.stock,
+        v.barcode AS variantBarcode,
+        p.name AS productName,
+        p.productCode,
+        p.unit,
+        p.description,
+        p.priceCalculationType,
+        b.name AS brandName,
+        c.id AS categoryId,
+        c.name AS categoryName,
+        sc.name AS subCategoryName,
+        pr.pricingType,
+        pr.basePrice,
+        pr.discountPercent,
+        pr.cashDiscountPercent,
+        pr.gstPercent,
+        pr.profitPercent,
+        pr.extraCharges,
+        pr.roundOff
+      FROM ProductVariant v
+      JOIN Product p ON v.productId = p.id
+      JOIN Brand b ON p.brandId = b.id
+      JOIN Category c ON p.categoryId = c.id
+      LEFT JOIN SubCategory sc ON p.subCategoryId = sc.id
+      LEFT JOIN PricingRule pr ON pr.variantId = v.id AND pr.isDefault = 1 AND pr.isActive = 1
+      WHERE v.isActive = 1 AND p.isActive = 1;
     `;
 
     const rows = await this.dbService.query<any>(sql);
 
     this.searchableProducts = rows.map(row => {
+      // Compile size display name suffix
+      const specs: string[] = [];
+      if (row.sizeMm) specs.push(`${row.sizeMm}mm`);
+      if (row.sizeInch) specs.push(row.sizeInch);
+      if (row.pressure) specs.push(row.pressure);
+      if (row.schedule) specs.push(row.schedule);
+      if (row.weightKg) specs.push(`${row.weightKg}kg`);
+      if (row.capacity) specs.push(row.capacity);
+      if (row.color) specs.push(row.color);
+      if (row.extraSpecification) specs.push(row.extraSpecification);
+
+      const specSuffix = specs.length > 0 ? ` (${specs.join(', ')})` : '';
+      const displayName = `${row.brandName} ${row.productName}${specSuffix}`;
+
+      // GST is standard row.gstPercent or default 18
+      const gst = row.gstPercent !== undefined && row.gstPercent !== null ? row.gstPercent : 18.0;
+
       const rawProduct: Product = {
-        Id: row.Id,
-        SKU: row.SKU,
-        CategoryId: row.CategoryId,
-        DisplayName: row.DisplayName,
-        Barcode: row.Barcode,
-        HSNCode: row.HSNCode,
-        GST: row.GST,
-        SellingPrice: row.SellingPrice,
-        Unit: row.Unit,
-        IsActive: row.IsActive,
-        CreatedAt: row.CreatedAt
+        Id: row.variantId,
+        SKU: row.variantSku,
+        CategoryId: row.categoryId,
+        DisplayName: displayName,
+        Barcode: row.variantBarcode || null,
+        HSNCode: row.productCode,
+        GST: gst,
+        SellingPrice: row.sellingPrice || 0,
+        Unit: row.unit,
+        IsActive: 1,
+        CreatedAt: new Date().toISOString(),
+        BrandName: row.brandName,
+        CategoryName: row.categoryName,
+        SubCategoryName: row.subCategoryName || '',
+        NormalizedSearchText: `${row.brandName} ${row.categoryName} ${row.subCategoryName || ''} ${row.productName} ${specs.join(' ')}`.toLowerCase()
       };
 
-      const name = row.DisplayName;
-      const sku = row.SKU;
-      const brand = row.BrandName ?? '';
-      const category = row.CategoryName ?? '';
-      const unit = row.Unit;
-      const barcode = row.Barcode ?? null;
-      const aliases = row.AliasesStr
-        ? row.AliasesStr.split('|').map((a: string) => defaultNormalizer.normalize(a))
-        : [];
+      const aliases: string[] = [];
+      // Populate aliases for size inches
+      if (row.sizeInch) {
+        const cleanInch = row.sizeInch.toLowerCase().replace(/["']/g, '').trim();
+        aliases.push(cleanInch);
+        aliases.push(cleanInch + ' inch');
+        
+        if (cleanInch === '1/2' || cleanInch === '0.5') {
+          aliases.push('half');
+          aliases.push('half inch');
+        } else if (cleanInch === '3/4' || cleanInch === '0.75') {
+          aliases.push('three fourth');
+          aliases.push('three quarter');
+          aliases.push('quarter');
+        } else if (cleanInch === '1 1/4' || cleanInch === '1-1/4' || cleanInch === '1.25') {
+          aliases.push('one and quarter');
+          aliases.push('quarter');
+        } else if (cleanInch === '1 1/2' || cleanInch === '1-1/2' || cleanInch === '1.5') {
+          aliases.push('one and half');
+        } else if (cleanInch === '2 1/2' || cleanInch === '2-1/2' || cleanInch === '2.5') {
+          aliases.push('two and half');
+        }
+      }
+
+      // Add dynamic brand-specific aliases (Gujarati phonetic equivalents)
+      if (row.brandName) {
+        const bn = row.brandName.toLowerCase();
+        if (bn === 'ashirvad') {
+          aliases.push('આશીર્વાદ');
+          aliases.push('ashirwad');
+        } else if (bn === 'supreme') {
+          aliases.push('સુપ્રીમ');
+        } else if (bn === 'prince') {
+          aliases.push('પ્રિન્સ');
+        } else if (bn === 'gopi') {
+          aliases.push('ગોપી');
+        } else if (bn === 'deflex') {
+          aliases.push('ડેફ્લેક્સ');
+        }
+      }
+
+      // Add common Gujarati terms
+      if (row.categoryName === 'PVC Pipe' || row.categoryName === 'UPVC Pipe' || row.categoryName === 'CPVC Pipe') {
+        aliases.push('પાઇપ');
+        aliases.push('પાણીની પાઇપ');
+      }
 
       const searchKeywords = this.extractSearchKeywords(
-        name,
-        sku,
-        brand,
-        category,
-        unit,
+        row.productName,
+        row.variantSku,
+        row.brandName,
+        row.categoryName,
+        row.unit,
         aliases,
-        barcode
+        row.variantBarcode,
+        row.sizeMm,
+        row.sizeInch,
+        row.weightKg,
+        row.pressure,
+        row.schedule,
+        row.capacity
       );
 
       return {
-        id: row.Id,
-        sku,
-        name,
-        brand,
-        category,
-        unit,
-        barcode,
-        price: row.SellingPrice,
+        id: row.variantId,
+        sku: row.variantSku,
+        name: displayName,
+        brand: row.brandName,
+        category: row.categoryName,
+        unit: row.unit,
+        barcode: row.variantBarcode || null,
+        price: row.sellingPrice || 0,
         aliases,
         searchKeywords,
         rawProduct
@@ -140,9 +215,7 @@ export class ProductSearchService {
   }
 
   /**
-   * Performs an intelligent in-memory search for products based on input text.
-   * @param text Speech or typed text search query.
-   * @returns SearchResult encapsulating products, bestMatch, confidence, and matches flags.
+   * Performs an in-memory search for product variants based on input text.
    */
   public async searchProducts(text: string): Promise<SearchResult> {
     if (!this.isLoaded) {
@@ -278,7 +351,6 @@ export class ProductSearchService {
     });
 
     // --- STAGE 9: Return Results & Confidence Rules ---
-    // If no keywords matched or the top result's confidence is low, return empty
     if (scoredItems.length === 0 || scoredItems[0].score === 0 || scoredItems[0].confidence < 60) {
       return {
         products: [],
@@ -291,10 +363,9 @@ export class ProductSearchService {
     const topItem = scoredItems[0];
     let highestConfidence = topItem.confidence;
 
-    // Check if there is a tie for the top score (indicating multiple matching products)
+    // Check if there is a tie for the top score
     const hasTie = scoredItems.length > 1 && scoredItems[1].score === topItem.score;
     if (hasTie) {
-      // If there is an equal tie, cap the confidence to force suggestions rather than returning a single bestMatch
       highestConfidence = Math.min(highestConfidence, 90);
     }
 
@@ -324,7 +395,6 @@ export class ProductSearchService {
 
   /**
    * Registers a new custom scoring processor into the pipeline.
-   * Allows third-party modules to easily plug in strategies like AI-based, recent sales, etc.
    */
   public registerProcessor(processor: ScoringProcessor): void {
     this.scoringProcessors.push(processor);
@@ -340,7 +410,7 @@ export class ProductSearchService {
 
   /**
    * Compiles search keywords for a product, tokenizing its properties
-   * and auto-extracting fractional dimensions/units (e.g. "20l" -> "20", "l").
+   * and auto-extracting fractional dimensions/units.
    */
   private extractSearchKeywords(
     name: string,
@@ -349,7 +419,13 @@ export class ProductSearchService {
     category: string,
     unit: string,
     aliases: string[],
-    barcode: string | null
+    barcode: string | null,
+    sizeMm?: number,
+    sizeInch?: string,
+    weightKg?: number,
+    pressure?: string,
+    schedule?: string,
+    capacity?: string
   ): string[] {
     const keywordsSet = new Set<string>();
 
@@ -357,7 +433,6 @@ export class ProductSearchService {
       const tokens = defaultNormalizer.tokenize(text);
       for (const t of tokens) {
         keywordsSet.add(t);
-        // Extract combinations (e.g., "20l" -> "20" and "l", "6kg" -> "6" and "kg")
         const match = t.match(/^(\d+)([a-zA-Z]+)$/);
         if (match) {
           keywordsSet.add(match[1]);
@@ -373,6 +448,37 @@ export class ProductSearchService {
     tokenizeAndAdd(unit);
     if (barcode) {
       keywordsSet.add(barcode.trim());
+    }
+
+    if (sizeMm) {
+      keywordsSet.add(String(sizeMm));
+      keywordsSet.add(`${sizeMm}mm`);
+      keywordsSet.add(`${sizeMm} mm`);
+    }
+
+    if (sizeInch) {
+      const cleanInch = sizeInch.toLowerCase().replace(/["']/g, '').trim();
+      keywordsSet.add(cleanInch);
+      keywordsSet.add(`${cleanInch} inch`);
+      keywordsSet.add(`${cleanInch}"`);
+    }
+
+    if (weightKg) {
+      keywordsSet.add(String(weightKg));
+      keywordsSet.add(`${weightKg}kg`);
+      keywordsSet.add(`${weightKg} kg`);
+    }
+
+    if (pressure) {
+      tokenizeAndAdd(pressure);
+    }
+
+    if (schedule) {
+      tokenizeAndAdd(schedule);
+    }
+
+    if (capacity) {
+      tokenizeAndAdd(capacity);
     }
 
     for (const alias of aliases) {
