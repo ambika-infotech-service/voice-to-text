@@ -58,6 +58,7 @@ export class BrowserSpeechProvider implements SpeechProvider {
   private recognition: ISpeechRecognition | null = null;
   private currentLanguage = 'en-US';
   private isInitialized = false;
+  private status: 'idle' | 'listening' | 'processing' | 'error' = 'idle';
 
   /**
    * Initializes the browser speech recognition instance.
@@ -95,13 +96,41 @@ export class BrowserSpeechProvider implements SpeechProvider {
   }
 
   /**
+   * Cleans up the current recognition instance by removing all event handlers
+   * and aborting any active session.
+   */
+  private cleanup(): void {
+    if (this.recognition) {
+      this.recognition.onstart = null;
+      this.recognition.onresult = null;
+      this.recognition.onerror = null;
+      this.recognition.onend = null;
+      try {
+        this.recognition.abort();
+      } catch {
+        // Ignore errors during abort
+      }
+      this.recognition = null;
+    }
+    this.isInitialized = false;
+  }
+
+  /**
    * Starts the speech recognition.
    */
   public start(): void {
+    this.cleanup();
     this.initialize();
     if (!this.recognition) {
       return;
     }
+
+    this.status = 'idle';
+    this.stateSubject.next({
+      error: null,
+      errorMessage: null
+    });
+
     try {
       this.recognition.start();
     } catch (err: unknown) {
@@ -119,6 +148,7 @@ export class BrowserSpeechProvider implements SpeechProvider {
     }
     try {
       this.recognition.stop();
+      this.status = 'processing';
       this.stateSubject.next({ status: 'processing' });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -130,23 +160,16 @@ export class BrowserSpeechProvider implements SpeechProvider {
    * Aborts the speech recognition.
    */
   public abort(): void {
-    if (!this.recognition) {
-      return;
-    }
-    try {
-      this.recognition.abort();
-      this.stateSubject.next({
-        status: 'idle',
-        transcript: '',
-        finalTranscript: '',
-        confidence: 0,
-        error: null,
-        errorMessage: null
-      });
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      this.emitError('unknown', `Abort failed: ${msg}`);
-    }
+    this.cleanup();
+    this.status = 'idle';
+    this.stateSubject.next({
+      status: 'idle',
+      transcript: '',
+      finalTranscript: '',
+      confidence: 0,
+      error: null,
+      errorMessage: null
+    });
   }
 
   /**
@@ -177,6 +200,7 @@ export class BrowserSpeechProvider implements SpeechProvider {
     }
 
     this.recognition.onstart = () => {
+      this.status = 'listening';
       this.stateSubject.next({
         status: 'listening',
         error: null,
@@ -203,6 +227,7 @@ export class BrowserSpeechProvider implements SpeechProvider {
 
       const avgConfidence = finalCount > 0 ? confidence / finalCount : 0;
 
+      this.status = 'listening';
       this.stateSubject.next({
         transcript: finalTranscript + interimTranscript,
         finalTranscript: finalTranscript,
@@ -214,6 +239,7 @@ export class BrowserSpeechProvider implements SpeechProvider {
     this.recognition.onerror = (event: ISpeechRecognitionErrorEvent) => {
       const errorCode = this.mapErrorCode(event.error);
       const errorMessage = this.getErrorMessage(errorCode);
+      this.status = 'error';
       this.stateSubject.next({
         status: 'error',
         error: errorCode,
@@ -222,9 +248,12 @@ export class BrowserSpeechProvider implements SpeechProvider {
     };
 
     this.recognition.onend = () => {
-      this.stateSubject.next({
-        status: 'idle'
-      });
+      if (this.status !== 'error') {
+        this.status = 'idle';
+        this.stateSubject.next({
+          status: 'idle'
+        });
+      }
     };
   }
 
@@ -277,6 +306,7 @@ export class BrowserSpeechProvider implements SpeechProvider {
   }
 
   private emitError(code: SpeechErrorCode, message: string): void {
+    this.status = 'error';
     this.stateSubject.next({
       status: 'error',
       error: code,
