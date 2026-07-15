@@ -1,5 +1,6 @@
-import { Service } from '@angular/core';
+import { Service, inject } from '@angular/core';
 import { InvoiceItem } from '../models/invoice.model';
+import { PricingService } from './pricing.service';
 
 /**
  * Service dedicated to performing pure arithmetic calculations for invoices.
@@ -7,6 +8,8 @@ import { InvoiceItem } from '../models/invoice.model';
  */
 @Service()
 export class CalculationService {
+  private readonly pricingService = inject(PricingService);
+
   /**
    * Computes the line item amount (Quantity * Rate).
    * @param quantity The number of items.
@@ -14,8 +17,7 @@ export class CalculationService {
    * @returns Calculated amount rounded to 2 decimal places.
    */
   public calculateItemAmount(quantity: number, rate: number): number {
-    if (quantity < 0 || rate < 0) return 0;
-    return Math.round(quantity * rate * 100) / 100;
+    return this.pricingService.calculateFinalAmount(rate, quantity);
   }
 
   /**

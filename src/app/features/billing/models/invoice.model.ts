@@ -5,8 +5,19 @@ export interface InvoiceItem {
   itemName: string;
   quantity: number;
   unit: string;
-  rate: number;
-  amount: number;
+  rate: number; // Represents the active sellingPrice for this line
+  amount: number; // Represents finalAmount for this line
+
+  // Pricing Snapshot fields for invoice audit trail
+  productVariantId?: number;
+  productName?: string;
+  variantName?: string;
+  purchasePrice?: number;
+  sellingPrice?: number;
+  discount?: number;
+  gst?: number;
+  profit?: number;
+  finalAmount?: number;
 }
 
 /**

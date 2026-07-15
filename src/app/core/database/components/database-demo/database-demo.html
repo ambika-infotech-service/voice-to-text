@@ -9,7 +9,7 @@
             <li class="nav-item">
                 <button type="button" class="nav-link" [class.active]="activeCrudTab() === 'products'"
                     (click)="switchTab('products')">
-                    Products
+                    Products & Variants
                 </button>
             </li>
             <li class="nav-item">
@@ -19,15 +19,15 @@
                 </button>
             </li>
             <li class="nav-item">
-                <button type="button" class="nav-link" [class.active]="activeCrudTab() === 'attributes'"
-                    (click)="switchTab('attributes')">
-                    Attributes & Values
+                <button type="button" class="nav-link" [class.active]="activeCrudTab() === 'subcategories'"
+                    (click)="switchTab('subcategories')">
+                    Subcategories
                 </button>
             </li>
             <li class="nav-item">
-                <button type="button" class="nav-link" [class.active]="activeCrudTab() === 'aliases'"
-                    (click)="switchTab('aliases')">
-                    Synonym Aliases
+                <button type="button" class="nav-link" [class.active]="activeCrudTab() === 'brands'"
+                    (click)="switchTab('brands')">
+                    Brands
                 </button>
             </li>
         </ul>
@@ -38,26 +38,26 @@
             <!-- Add/Edit Product Form -->
             <div class="col-lg-4 border-end">
                 @if (!isEditingProduct()) {
-                <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Add New Product</h4>
+                <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Add New Product Variant</h4>
                 <form [formGroup]="productForm" (ngSubmit)="addProduct()">
                     <div class="mb-3">
                         <label for="sku" class="form-label small font-weight-bold">SKU Code (Unique)</label>
                         <input id="sku" type="text" class="form-control" formControlName="sku"
-                            placeholder="e.g. SUP-PVC-9">
+                            placeholder="e.g. PR-PVC-6K-25">
                     </div>
 
                     <div class="mb-3">
                         <label for="displayName" class="form-label small font-weight-bold">Display Name</label>
                         <input id="displayName" type="text" class="form-control" formControlName="displayName"
-                            placeholder="e.g. Supreme PVC Pipe 2 Inch">
+                            placeholder="e.g. PVC Pipe 25mm 6kg">
                     </div>
 
                     <div class="mb-3">
                         <label for="categoryId" class="form-label small font-weight-bold">Category</label>
                         <select id="categoryId" class="form-select" formControlName="categoryId">
                             <option value="" disabled>Select Category</option>
-                            @for (cat of categories(); track cat.Id) {
-                            <option [value]="cat.Id">{{ cat.Name }}</option>
+                            @for (cat of categories(); track cat.id) {
+                            <option [value]="cat.id">{{ cat.name }}</option>
                             }
                         </select>
                     </div>
@@ -85,33 +85,13 @@
                         </div>
                     </div>
 
-                    <!-- Map Attributes Checkbox List -->
-                    <div class="mb-3">
-                        <label class="form-label small font-weight-bold d-block">Associate Characteristics</label>
-                        <div class="border rounded p-2 bg-light overflow-auto" style="max-height: 120px;">
-                            @for (val of allAvailableAttributeValues(); track val.Id) {
-                            <div class="form-check">
-                                <input type="checkbox" [id]="'val-' + val.Id" class="form-check-input"
-                                    [checked]="selectedMappingValues().includes(val.Id)"
-                                    (change)="toggleAttributeValueMapping(val.Id)">
-                                <label [for]="'val-' + val.Id" class="form-check-label small">
-                                    <strong>{{ val.attributeName }}</strong>: {{ val.DisplayValue }}
-                                </label>
-                            </div>
-                            } @empty {
-                            <span class="text-muted small">No attribute values configured. Create them in the attributes
-                                tab.</span>
-                            }
-                        </div>
-                    </div>
-
                     <button type="submit" class="btn btn-primary w-100 py-2 font-weight-bold"
                         [disabled]="productForm.invalid">
-                        Insert Product
+                        Insert Product Variant
                     </button>
                 </form>
                 } @else {
-                <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold text-warning">Edit Product</h4>
+                <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold text-warning">Edit Product Variant</h4>
                 <form [formGroup]="editProductForm" (ngSubmit)="updateProduct()">
                     <div class="mb-3">
                         <label for="edit-sku" class="form-label small font-weight-bold">SKU Code (Unique)</label>
@@ -127,8 +107,8 @@
                         <label for="edit-categoryId" class="form-label small font-weight-bold">Category</label>
                         <select id="edit-categoryId" class="form-select" formControlName="categoryId">
                             <option value="" disabled>Select Category</option>
-                            @for (cat of categories(); track cat.Id) {
-                            <option [value]="cat.Id">{{ cat.Name }}</option>
+                            @for (cat of categories(); track cat.id) {
+                            <option [value]="cat.id">{{ cat.name }}</option>
                             }
                         </select>
                     </div>
@@ -152,27 +132,7 @@
                         </div>
                         <div class="col-6 mb-3">
                             <label for="edit-barcode" class="form-label small font-weight-bold">Barcode</label>
-                            <input id="edit-barcode" type="text" class="form-control" formControlName="barcode"
-                                placeholder="Optional">
-                        </div>
-                    </div>
-
-                    <!-- Map Attributes Checkbox List inside Edit -->
-                    <div class="mb-3">
-                        <label class="form-label small font-weight-bold d-block">Associate Characteristics</label>
-                        <div class="border rounded p-2 bg-light overflow-auto" style="max-height: 120px;">
-                            @for (val of allAvailableAttributeValues(); track val.Id) {
-                            <div class="form-check">
-                                <input type="checkbox" [id]="'edit-val-' + val.Id" class="form-check-input"
-                                    [checked]="selectedMappingValues().includes(val.Id)"
-                                    (change)="toggleAttributeValueMapping(val.Id)">
-                                <label [for]="'edit-val-' + val.Id" class="form-check-label small">
-                                    <strong>{{ val.attributeName }}</strong>: {{ val.DisplayValue }}
-                                </label>
-                            </div>
-                            } @empty {
-                            <span class="text-muted small">No attribute values configured.</span>
-                            }
+                            <input id="edit-barcode" type="text" class="form-control" formControlName="barcode">
                         </div>
                     </div>
 
@@ -189,15 +149,84 @@
                 }
             </div>
 
-            <!-- Products List & Details -->
+            <!-- Products List & Variant Inspection -->
             <div class="col-lg-8">
-                <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Products List</h4>
-                <div class="table-responsive mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="h6 text-uppercase text-muted mb-0 font-weight-bold">Products List (Variants view)</h4>
+                    @if (selectedProductDetails()) {
+                    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="selectedProductId.set(null); selectedProductDetails.set(null)">
+                        Clear Selection
+                    </button>
+                    }
+                </div>
+
+                @if (selectedProductDetails()) {
+                <div class="border rounded p-3 bg-light mb-3">
+                    <h5 class="h6 mb-2 font-weight-bold text-primary">{{ selectedProductDetails()?.product?.DisplayName }}</h5>
+                    <div class="row small g-2 mb-3">
+                        <div class="col-6"><strong>SKU:</strong> {{ selectedProductDetails()?.product?.SKU }}</div>
+                        <div class="col-6"><strong>Price:</strong> ₹{{ selectedProductDetails()?.product?.SellingPrice }}</div>
+                        <div class="col-6"><strong>Unit:</strong> {{ selectedProductDetails()?.product?.Unit }}</div>
+                        <div class="col-6"><strong>GST rate:</strong> {{ selectedProductDetails()?.product?.GST }}%</div>
+                        @if (selectedProductDetails()?.product?.Barcode) {
+                        <div class="col-12"><strong>Barcode:</strong> {{ selectedProductDetails()?.product?.Barcode }}</div>
+                        }
+                    </div>
+                    <h6 class="small text-uppercase text-muted font-weight-bold mb-2">Variant Specs</h6>
+                    <div class="row g-2">
+                        @for (attr of selectedProductDetails()?.attributes; track attr.attributeName) {
+                        <div class="col-md-6 col-12">
+                            <span class="badge bg-secondary font-weight-bold me-1">{{ attr.attributeName }}:</span>
+                            <span class="small">{{ attr.displayValue }}</span>
+                        </div>
+                        } @empty {
+                        <div class="col-12 text-muted small">No extra attributes set on this variant.</div>
+                        }
+                    </div>
+                </div>
+                }
+
+                <!-- Search & Filters Row -->
+                <div class="row g-2 mb-3">
+                    <div class="col-md-5 col-12">
+                        <input type="text" class="form-control form-control-sm" placeholder="Search products by SKU or Name..."
+                            [value]="productSearchQuery()" (input)="updateProductSearch($event)">
+                    </div>
+                    <div class="col-md-2 col-4">
+                        <select class="form-select form-select-sm" [value]="selectedCategoryFilter()" 
+                            (change)="selectedCategoryFilter.set($any($event.target).value)">
+                            <option value="">All Categories</option>
+                            @for (cat of categories(); track cat.id) {
+                            <option [value]="cat.id">{{ cat.name }}</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2 col-4">
+                        <select class="form-select form-select-sm" [value]="selectedBrandFilter()" 
+                            (change)="selectedBrandFilter.set($any($event.target).value)">
+                            <option value="">All Brands</option>
+                            @for (brand of brands(); track brand.id) {
+                            <option [value]="brand.id">{{ brand.name }}</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3 col-4">
+                        <select class="form-select form-select-sm" [value]="selectedSubCategoryFilter()" 
+                            (change)="selectedSubCategoryFilter.set($any($event.target).value)">
+                            <option value="">All Subcategories</option>
+                            @for (sub of subCategories(); track sub.id) {
+                            <option [value]="sub.id">{{ sub.name }}</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                     <table class="table table-hover table-striped align-middle small">
-                        <thead class="table-light">
+                        <thead class="table-light sticky-top">
                             <tr>
                                 <th>SKU</th>
-                                <th>Display Name</th>
+                                <th>Name</th>
                                 <th>Price</th>
                                 <th>GST</th>
                                 <th>Unit</th>
@@ -205,54 +234,32 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @for (prod of products(); track prod.Id) {
-                            <tr [class.table-primary]="selectedProductId() === prod.Id" style="cursor: pointer;"
-                                (click)="selectProduct(prod.Id!)">
+                            @for (prod of filteredProducts(); track prod.Id) {
+                            <tr [class.table-primary]="selectedProductId() === prod.Id" style="cursor: pointer;" (click)="selectProduct(prod.Id!)">
                                 <td><code>{{ prod.SKU }}</code></td>
-                                <td>{{ prod.DisplayName }}</td>
+                                <td><strong>{{ prod.DisplayName }}</strong></td>
                                 <td>₹{{ prod.SellingPrice }}</td>
                                 <td>{{ prod.GST }}%</td>
                                 <td>{{ prod.Unit }}</td>
-                                <td class="text-end">
+                                <td class="text-end" (click)="$event.stopPropagation()">
                                     <button type="button" class="btn btn-sm btn-outline-primary me-1"
-                                        (click)="startEditProduct(prod); $event.stopPropagation()">
+                                        (click)="startEditProduct(prod)">
                                         Edit
                                     </button>
                                     <button type="button" class="btn btn-sm btn-outline-danger"
-                                        (click)="deleteProduct(prod.Id!); $event.stopPropagation()">
+                                        (click)="deleteProduct(prod.Id!)">
                                         Delete
                                     </button>
                                 </td>
                             </tr>
                             } @empty {
                             <tr>
-                                <td colspan="6" class="text-center text-muted py-3">No products found. Insert one above.
-                                </td>
+                                <td colspan="6" class="text-center text-muted py-3">No products found.</td>
                             </tr>
                             }
                         </tbody>
                     </table>
                 </div>
-
-                <!-- Product Details Display -->
-                @if (selectedProductDetails()) {
-                <div class="border rounded p-3 bg-light">
-                    <h5 class="h6 font-weight-bold mb-2">Mapped Configuration Details</h5>
-                    <p class="small mb-2 text-secondary">
-                        <strong>SKU:</strong> <code>{{ selectedProductDetails()!.product.SKU }}</code> |
-                        <strong>Barcode:</strong> {{ selectedProductDetails()!.product.Barcode || 'None' }}
-                    </p>
-                    <div class="d-flex flex-wrap gap-2">
-                        @for (attr of selectedProductDetails()!.attributes; track attr.attributeName) {
-                        <span class="badge bg-secondary py-1.5 px-3">
-                            {{ attr.attributeName }}: <strong>{{ attr.displayValue }}</strong>
-                        </span>
-                        } @empty {
-                        <span class="text-muted small">No characteristics mapped to this product.</span>
-                        }
-                    </div>
-                </div>
-                }
             </div>
         </div>
         }
@@ -309,18 +316,18 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @for (cat of categories(); track cat.Id) {
+                            @for (cat of categories(); track cat.id) {
                             <tr>
-                                <td>{{ cat.Id }}</td>
-                                <td>{{ cat.Name }}</td>
-                                <td>{{ cat.CreatedAt }}</td>
+                                <td>{{ cat.id }}</td>
+                                <td>{{ cat.name }}</td>
+                                <td>{{ cat.createdAt }}</td>
                                 <td class="text-end">
                                     <button type="button" class="btn btn-sm btn-outline-primary me-1"
                                         (click)="startEditCategory(cat)">
                                         Edit
                                     </button>
                                     <button type="button" class="btn btn-sm btn-outline-danger"
-                                        (click)="deleteCategory(cat.Id!)">
+                                        (click)="deleteCategory(cat.id!)">
                                         Delete
                                     </button>
                                 </td>
@@ -337,142 +344,120 @@
         </div>
         }
 
-        <!-- 3. ATTRIBUTES & VALUES TAB -->
-        @if (activeCrudTab() === 'attributes') {
+        <!-- 3. SUBCATEGORIES TAB -->
+        @if (activeCrudTab() === 'subcategories') {
         <div class="row g-4">
-            <!-- Left: Configure Attributes -->
-            <div class="col-md-6 border-end">
-                <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Add Attribute</h4>
-                <form [formGroup]="attributeForm" (ngSubmit)="addAttribute()" class="row g-2 mb-4">
-                    <div class="col-7">
-                        <input type="text" class="form-control form-control-sm" formControlName="name"
-                            placeholder="e.g. Thickness">
-                    </div>
-                    <div class="col-3">
-                        <select class="form-select form-select-sm" formControlName="dataType">
-                            <option value="TEXT">TEXT</option>
-                            <option value="NUMBER">NUMBER</option>
-                        </select>
-                    </div>
-                    <div class="col-2">
-                        <button type="submit" class="btn btn-sm btn-primary w-100"
-                            [disabled]="attributeForm.invalid">Add</button>
-                    </div>
-                </form>
-
-                <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Attributes List</h4>
-                <div class="list-group">
-                    @for (attr of attributes(); track attr.Id) {
-                    <button type="button"
-                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-                        [class.active]="selectedAttributeId() === attr.Id" (click)="selectAttribute(attr.Id!)">
-                        {{ attr.Name }}
-                        <span class="badge bg-secondary font-weight-normal small">{{ attr.DataType }}</span>
-                    </button>
-                    } @empty {
-                    <div class="text-muted text-center py-2 small">No attributes created.</div>
-                    }
-                </div>
-            </div>
-
-            <!-- Right: Configure Mapped Values -->
-            <div class="col-md-6">
-                @if (selectedAttributeId() !== null) {
-                <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Add Value Option</h4>
-                <form [formGroup]="attributeValueForm" (ngSubmit)="addAttributeValue()" class="row g-2 mb-4">
-                    <div class="col-9">
-                        <input type="text" class="form-control form-control-sm" formControlName="displayValue"
-                            placeholder="e.g. 5mm, 10mm">
-                    </div>
-                    <div class="col-3">
-                        <button type="submit" class="btn btn-sm btn-primary w-100"
-                            [disabled]="attributeValueForm.invalid">Add Value</button>
-                    </div>
-                </form>
-
-                <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Configured Values</h4>
-                <ul class="list-group list-group-flush border rounded p-1 small overflow-auto"
-                    style="max-height: 250px;">
-                    @for (val of attributeValues(); track val.Id) {
-                    <li class="list-group-item py-2 d-flex justify-content-between align-items-center">
-                        {{ val.DisplayValue }}
-                        <code class="small text-muted">{{ val.NormalizedValue }}</code>
-                    </li>
-                    } @empty {
-                    <li class="list-group-item text-muted text-center small py-3">No values configured. Add one above.
-                    </li>
-                    }
-                </ul>
-                } @else {
-                <div class="alert alert-secondary text-center small my-5">
-                    Select an attribute from the left to view/configure its options.
-                </div>
-                }
-            </div>
-        </div>
-        }
-
-        <!-- 4. ALIAS SYNONYMS TAB -->
-        @if (activeCrudTab() === 'aliases') {
-        <div class="row g-4">
-            <!-- Add Alias Form -->
+            <!-- Add SubCategory Form -->
             <div class="col-md-4 border-end">
-                <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Add Synonym Alias</h4>
-                <form [formGroup]="aliasForm" (ngSubmit)="addAlias()">
+                <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Add Subcategory</h4>
+                <form [formGroup]="subCategoryForm" (ngSubmit)="addSubCategory()">
                     <div class="mb-3">
-                        <label for="attributeValueId" class="form-label small font-weight-bold">Maps to Option</label>
-                        <select id="attributeValueId" class="form-select" formControlName="attributeValueId">
-                            <option value="" disabled>Select Option</option>
-                            @for (val of allAvailableAttributeValues(); track val.Id) {
-                            <option [value]="val.Id">
-                                {{ val.attributeName }}: {{ val.DisplayValue }}
-                            </option>
+                        <label for="subCatCatId" class="form-label small font-weight-bold">Category</label>
+                        <select id="subCatCatId" class="form-select" formControlName="categoryId">
+                            <option value="" disabled>Select Category</option>
+                            @for (cat of categories(); track cat.id) {
+                            <option [value]="cat.id">{{ cat.name }}</option>
                             }
                         </select>
                     </div>
 
                     <div class="mb-3">
-                        <label for="keyword" class="form-label small font-weight-bold">Synonym Keyword</label>
-                        <input id="keyword" type="text" class="form-control" formControlName="keyword"
-                            placeholder="e.g. 1 Inch, 1&quot;, એક ઇંચ">
-                        <div class="form-text small">Include translations (Gujarati/Hindi) or shorthand names.</div>
+                        <label for="subCatName" class="form-label small font-weight-bold">Subcategory Name</label>
+                        <input id="subCatName" type="text" class="form-control" formControlName="name"
+                            placeholder="e.g. Coupler, Elbow">
                     </div>
 
                     <button type="submit" class="btn btn-primary w-100 py-2 font-weight-bold"
-                        [disabled]="aliasForm.invalid">
-                        Insert Alias
+                        [disabled]="subCategoryForm.invalid">
+                        Insert Subcategory
                     </button>
                 </form>
             </div>
 
-            <!-- Aliases Table -->
+            <!-- SubCategories Table -->
             <div class="col-md-8">
-                <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Synonyms Registry</h4>
+                <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Subcategory List</h4>
                 <div class="table-responsive">
                     <table class="table table-hover table-striped align-middle small">
                         <thead class="table-light">
                             <tr>
-                                <th>Keyword</th>
-                                <th>Maps to Characteristic</th>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Parent Category</th>
                                 <th class="text-end">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @for (al of aliases(); track al.Id) {
+                            @for (sc of subCategories(); track sc.id) {
                             <tr>
-                                <td><strong>{{ al.Keyword }}</strong></td>
-                                <td>{{ al.attributeName }}: <code>{{ al.valueName }}</code></td>
+                                <td>{{ sc.id }}</td>
+                                <td><strong>{{ sc.name }}</strong></td>
+                                <td>{{ sc.categoryName }}</td>
                                 <td class="text-end">
                                     <button type="button" class="btn btn-sm btn-outline-danger"
-                                        (click)="deleteAlias(al.Id!)">
+                                        (click)="deleteSubCategory(sc.id)">
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                            } @empty {
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-3">No subcategories found.</td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        }
+
+        <!-- 4. BRANDS TAB -->
+        @if (activeCrudTab() === 'brands') {
+        <div class="row g-4">
+            <!-- Add Brand Form -->
+            <div class="col-md-4 border-end">
+                <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Add Brand</h4>
+                <form [formGroup]="brandForm" (ngSubmit)="addBrand()">
+                    <div class="mb-3">
+                        <label for="brandName" class="form-label small font-weight-bold">Brand Name</label>
+                        <input id="brandName" type="text" class="form-control" formControlName="name"
+                            placeholder="e.g. Astral, Prince">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-2 font-weight-bold"
+                        [disabled]="brandForm.invalid">
+                        Insert Brand
+                    </button>
+                </form>
+            </div>
+
+            <!-- Brands Table -->
+            <div class="col-md-8">
+                <h4 class="h6 text-uppercase text-muted mb-3 font-weight-bold">Brand Registry</h4>
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped align-middle small">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (b of brands(); track b.id) {
+                            <tr>
+                                <td>{{ b.id }}</td>
+                                <td><strong>{{ b.name }}</strong></td>
+                                <td class="text-end">
+                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                        (click)="deleteBrand(b.id)">
                                         Remove
                                     </button>
                                 </td>
                             </tr>
                             } @empty {
                             <tr>
-                                <td colspan="3" class="text-center text-muted py-3">No synonyms found. Insert one above.
-                                </td>
+                                <td colspan="3" class="text-center text-muted py-3">No brands registered.</td>
                             </tr>
                             }
                         </tbody>

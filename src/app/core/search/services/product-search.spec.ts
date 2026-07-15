@@ -78,52 +78,109 @@ describe('ProductSearchService', () => {
       initialize: vi.fn().mockResolvedValue(undefined),
       query: vi.fn().mockResolvedValue([
         {
-          Id: 1,
-          SKU: 'SUP-PVC-1',
-          CategoryId: 1,
-          DisplayName: 'Supreme PVC Pipe 1" 6kg ISI',
-          Barcode: '123456789011',
-          HSNCode: '3917',
-          GST: 18.0,
-          SellingPrice: 150.0,
-          Unit: 'Mtr',
-          IsActive: 1,
-          CreatedAt: '2026-07-13T10:00:00Z',
-          CategoryName: 'Plumbing',
-          BrandName: 'Supreme',
-          AliasesStr: 'pvc|પીવીસી|p v c|1 inch|1"|એક ઇંચ|6kg|6 kg|છ કિલો|supreme|સુપ્રીમ'
+          variantId: 1,
+          variantSku: 'SUP-PVC-1',
+          productId: 1,
+          sizeMm: null,
+          sizeInch: '1"',
+          weightKg: 6,
+          pressure: null,
+          schedule: null,
+          pipeLength: 6,
+          capacity: null,
+          color: null,
+          extraSpecification: 'ISI',
+          purchasePrice: 120.0,
+          sellingPrice: 150.0,
+          stock: 100,
+          variantBarcode: '123456789011',
+          productName: 'PVC Pipe',
+          productCode: '3917',
+          unit: 'Mtr',
+          description: 'Supreme PVC Pipe 1" 6kg ISI',
+          priceCalculationType: 'FORMULA',
+          brandName: 'Supreme',
+          categoryId: 1,
+          categoryName: 'Plumbing',
+          subCategoryName: 'Rigid PVC Pipe',
+          pricingType: 'BASE_MINUS_DISCOUNT_MINUS_CASH_PLUS_GST',
+          basePrice: 210,
+          discountPercent: 45,
+          cashDiscountPercent: 5,
+          gstPercent: 18,
+          profitPercent: 0,
+          extraCharges: 0,
+          roundOff: 0
         },
         {
-          Id: 2,
-          SKU: 'ASH-PVC-1',
-          CategoryId: 1,
-          DisplayName: 'Ashirvad PVC Pipe 1" 6kg ISI',
-          Barcode: '123456789012',
-          HSNCode: '3917',
-          GST: 18.0,
-          SellingPrice: 160.0,
-          Unit: 'Mtr',
-          IsActive: 1,
-          CreatedAt: '2026-07-13T10:00:00Z',
-          CategoryName: 'Plumbing',
-          BrandName: 'Ashirvad',
-          AliasesStr: 'pvc|પીવીસી|p v c|1 inch|1"|એક ઇંચ|6kg|6 kg|છ કિલો|ashirvad|આશીર્વાદ|ashirwad'
+          variantId: 2,
+          variantSku: 'ASH-PVC-1',
+          productId: 2,
+          sizeMm: null,
+          sizeInch: '1"',
+          weightKg: 6,
+          pressure: null,
+          schedule: null,
+          pipeLength: 6,
+          capacity: null,
+          color: null,
+          extraSpecification: 'ISI',
+          purchasePrice: 130.0,
+          sellingPrice: 160.0,
+          stock: 100,
+          variantBarcode: '123456789012',
+          productName: 'PVC Pipe',
+          productCode: '3917',
+          unit: 'Mtr',
+          description: 'Ashirvad PVC Pipe 1" 6kg ISI',
+          priceCalculationType: 'FORMULA',
+          brandName: 'Ashirvad',
+          categoryId: 1,
+          categoryName: 'Plumbing',
+          subCategoryName: 'Rigid PVC Pipe',
+          pricingType: 'BASE_MINUS_DISCOUNT_MINUS_CASH_PLUS_GST',
+          basePrice: 220,
+          discountPercent: 45,
+          cashDiscountPercent: 5,
+          gstPercent: 18,
+          profitPercent: 0,
+          extraCharges: 0,
+          roundOff: 0
         },
         {
-          Id: 3,
-          SKU: 'PAINTS-TRACTOR-20L',
-          CategoryId: 2,
-          DisplayName: 'Asian Paints Tractor Emulsion White 20L',
-          Barcode: '123456789013',
-          HSNCode: '3209',
-          GST: 18.0,
-          SellingPrice: 3500.0,
-          Unit: 'Ltr',
-          IsActive: 1,
-          CreatedAt: '2026-07-13T10:00:00Z',
-          CategoryName: 'Paints',
-          BrandName: 'Asian Paints',
-          AliasesStr: 'tractor white|asian tractor|tractor 20 litre|tractor 20L|tractor emulsion|white tractor'
+          variantId: 3,
+          variantSku: 'PAINTS-TRACTOR-20L',
+          productId: 3,
+          sizeMm: null,
+          sizeInch: null,
+          weightKg: null,
+          pressure: null,
+          schedule: null,
+          pipeLength: null,
+          capacity: '20L',
+          color: 'White',
+          extraSpecification: null,
+          purchasePrice: 3000.0,
+          sellingPrice: 3500.0,
+          stock: 50,
+          variantBarcode: '123456789013',
+          productName: 'Tractor Emulsion White 20L',
+          productCode: '3209',
+          unit: 'Ltr',
+          description: 'Asian Paints Tractor Emulsion White 20L',
+          priceCalculationType: 'DIRECT_PRICE',
+          brandName: 'Asian Paints',
+          categoryId: 2,
+          categoryName: 'Paints',
+          subCategoryName: 'Emulsion',
+          pricingType: 'DIRECT_PRICE',
+          basePrice: 3500,
+          discountPercent: 0,
+          cashDiscountPercent: 0,
+          gstPercent: 18,
+          profitPercent: 0,
+          extraCharges: 0,
+          roundOff: 0
         }
       ])
     };
@@ -157,38 +214,31 @@ describe('ProductSearchService', () => {
   });
 
   it('should support Exact Product Name matching shortcut (Stage 4)', async () => {
-    const result = await service.searchProducts('Ashirvad PVC Pipe 1" 6kg ISI');
+    const result = await service.searchProducts('Ashirvad PVC Pipe (1", 6kg, ISI)');
     expect(result.confidence).toBe(100);
     expect(result.bestMatch).toBeTruthy();
     expect(result.bestMatch?.SKU).toBe('ASH-PVC-1');
   });
 
   it('should resolve and rank products by keyword matching, brand, category, etc. (Stage 5-8)', async () => {
-    // Search "tractor white twenty litre"
-    // normalized: "tractor white 20l"
-    // matches: Asian Paints Tractor Emulsion White 20L
     const result = await service.searchProducts('tractor white twenty litre');
     expect(result.confidence).toBeGreaterThanOrEqual(90);
     expect(result.bestMatch?.SKU).toBe('PAINTS-TRACTOR-20L');
   });
 
   it('should match using fuzzy logic Levenshtein (Stage 7)', async () => {
-    // "trctor" (distance 1 to tractor)
     const result = await service.searchProducts('trctor white');
     expect(result.confidence).toBeGreaterThanOrEqual(80);
     expect(result.products[0]?.SKU).toBe('PAINTS-TRACTOR-20L');
   });
 
   it('should enforce confidence rules for return formatting (Stage 9)', async () => {
-    // 1. High confidence (>90%) -> bestMatch only, products has only that match
     const highConfResult = await service.searchProducts('supreme pvc pipe 1" 6kg');
     expect(highConfResult.confidence).toBeGreaterThan(90);
     expect(highConfResult.bestMatch).toBeTruthy();
     expect(highConfResult.products.length).toBe(1);
     expect(highConfResult.multipleMatches).toBe(false);
 
-    // 2. Medium confidence (60-90%) -> suggestions list (up to 5), bestMatch is null
-    // Searching "pvc pipe" matches Supreme and Ashirvad
     const medConfResult = await service.searchProducts('pvc pipe');
     expect(medConfResult.confidence).toBeLessThanOrEqual(90);
     expect(medConfResult.confidence).toBeGreaterThanOrEqual(60);
@@ -196,7 +246,6 @@ describe('ProductSearchService', () => {
     expect(medConfResult.products.length).toBe(2);
     expect(medConfResult.multipleMatches).toBe(true);
 
-    // 3. Low confidence (<60%) -> empty result
     const lowConfResult = await service.searchProducts('completely unrelated search term');
     expect(lowConfResult.confidence).toBeLessThan(60);
     expect(lowConfResult.bestMatch).toBeNull();
@@ -205,7 +254,6 @@ describe('ProductSearchService', () => {
   });
 
   it('should be future-ready by allowing registration of custom scoring engines (Stage 11)', async () => {
-    // Register custom scorer prioritizing specific barcodes
     class BarcodePriorityScorer implements ScoringProcessor {
       public readonly name = 'BarcodePriority';
       public readonly weight = 1.0;

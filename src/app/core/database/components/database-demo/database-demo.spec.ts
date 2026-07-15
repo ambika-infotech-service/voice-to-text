@@ -3,9 +3,6 @@ import { DatabaseDemo } from './database-demo';
 import { DatabaseService } from '../../database';
 import { CategoryRepository } from '../../repositories/category';
 import { ProductRepository } from '../../repositories/product';
-import { AttributeRepository } from '../../repositories/attribute';
-import { AliasRepository } from '../../repositories/alias';
-import { signal } from '@angular/core';
 import { By } from '@angular/platform-browser';
 
 describe('DatabaseDemoComponent', () => {
@@ -14,8 +11,6 @@ describe('DatabaseDemoComponent', () => {
   let mockDbService: any;
   let mockCategoryRepo: any;
   let mockProductRepo: any;
-  let mockAttributeRepo: any;
-  let mockAliasRepo: any;
 
   beforeEach(async () => {
     mockDbService = {
@@ -24,21 +19,18 @@ describe('DatabaseDemoComponent', () => {
     };
 
     mockCategoryRepo = {
-      getAll: vi.fn().mockResolvedValue([{ Id: 1, Name: 'Plumbing', IsActive: 1, CreatedAt: 'now' }])
+      getAll: vi.fn().mockResolvedValue([{ id: 1, name: 'Plumbing', isActive: 1, createdAt: 'now' }]),
+      insert: vi.fn().mockResolvedValue(1),
+      delete: vi.fn().mockResolvedValue(undefined),
+      update: vi.fn().mockResolvedValue(undefined)
     };
 
     mockProductRepo = {
       getAll: vi.fn().mockResolvedValue([]),
-      getProductWithAttributes: vi.fn().mockResolvedValue(null)
-    };
-
-    mockAttributeRepo = {
-      getAll: vi.fn().mockResolvedValue([]),
-      getAttributeValues: vi.fn().mockResolvedValue([])
-    };
-
-    mockAliasRepo = {
-      getAll: vi.fn().mockResolvedValue([])
+      getProductWithAttributes: vi.fn().mockResolvedValue(null),
+      insert: vi.fn().mockResolvedValue(1),
+      delete: vi.fn().mockResolvedValue(undefined),
+      update: vi.fn().mockResolvedValue(undefined)
     };
 
     await TestBed.configureTestingModule({
@@ -46,9 +38,7 @@ describe('DatabaseDemoComponent', () => {
       providers: [
         { provide: DatabaseService, useValue: mockDbService },
         { provide: CategoryRepository, useValue: mockCategoryRepo },
-        { provide: ProductRepository, useValue: mockProductRepo },
-        { provide: AttributeRepository, useValue: mockAttributeRepo },
-        { provide: AliasRepository, useValue: mockAliasRepo }
+        { provide: ProductRepository, useValue: mockProductRepo }
       ]
     }).compileComponents();
 
@@ -64,7 +54,6 @@ describe('DatabaseDemoComponent', () => {
   it('should switch tabs correctly', () => {
     expect(component['activeCrudTab']()).toBe('products');
 
-    // Click Category tab button
     const tabs = fixture.debugElement.queryAll(By.css('.nav-link'));
     const categoryTabBtn = tabs.find(tab => tab.nativeElement.textContent.trim() === 'Categories');
     
@@ -77,11 +66,10 @@ describe('DatabaseDemoComponent', () => {
 
   it('should load categories list on init', () => {
     expect(mockCategoryRepo.getAll).toHaveBeenCalled();
-    expect(component['categories']()).toEqual([{ Id: 1, Name: 'Plumbing', IsActive: 1, CreatedAt: 'now' }]);
+    expect(component['categories']()).toEqual([{ id: 1, name: 'Plumbing', isActive: 1, createdAt: 'now' }]);
   });
 
   it('should populate edit form and activate edit mode when startEditProduct is called', async () => {
-    mockDbService.query.mockResolvedValueOnce([{ AttributeValueId: 3 }]);
     mockProductRepo.update = vi.fn().mockResolvedValue(undefined);
 
     const testProd = {
@@ -101,7 +89,6 @@ describe('DatabaseDemoComponent', () => {
     await component['startEditProduct'](testProd);
 
     expect(component['isEditingProduct']()).toBe(true);
-    expect(component['selectedMappingValues']()).toEqual([3]);
     expect(component['editProductForm'].value).toEqual({
       id: 10,
       sku: 'TEST-SKU-1',
@@ -114,15 +101,13 @@ describe('DatabaseDemoComponent', () => {
       unit: 'meter'
     });
 
-    // Save/Update action verification
     await component['updateProduct']();
     expect(mockProductRepo.update).toHaveBeenCalledWith(
       expect.objectContaining({
         Id: 10,
         SKU: 'TEST-SKU-1',
         Unit: 'meter'
-      }),
-      [3]
+      })
     );
     expect(component['isEditingProduct']()).toBe(false);
   });
@@ -131,10 +116,10 @@ describe('DatabaseDemoComponent', () => {
     mockCategoryRepo.update = vi.fn().mockResolvedValue(undefined);
 
     const testCat = {
-      Id: 5,
-      Name: 'Paints',
-      IsActive: 1,
-      CreatedAt: 'then'
+      id: 5,
+      name: 'Paints',
+      isActive: 1,
+      createdAt: 'then'
     };
 
     component['startEditCategory'](testCat);
@@ -149,10 +134,47 @@ describe('DatabaseDemoComponent', () => {
 
     expect(mockCategoryRepo.update).toHaveBeenCalledWith(
       expect.objectContaining({
-        Id: 5,
-        Name: 'Paints'
+        id: 5,
+        name: 'Paints'
       })
     );
     expect(component['isEditingCategory']()).toBe(false);
+  });
+
+  it('should filter product list based on search query and brand/category/subcategory filters', () => {
+    const list = [
+      { SKU: 'PR-1', DisplayName: 'Prince Tee', CategoryId: 1, BrandId: 10, SubCategoryId: 20 },
+      { SKU: 'AS-1', DisplayName: 'Astral Elbow', CategoryId: 2, BrandId: 11, SubCategoryId: 21 }
+    ] as any[];
+    component['products'].set(list);
+
+    expect(component['filteredProducts']().length).toBe(2);
+
+    // Search by Category filter
+    component['selectedCategoryFilter'].set('1');
+    expect(component['filteredProducts']()).toEqual([list[0]]);
+    component['selectedCategoryFilter'].set('');
+
+    // Search by Brand filter
+    component['selectedBrandFilter'].set('11');
+    expect(component['filteredProducts']()).toEqual([list[1]]);
+    component['selectedBrandFilter'].set('');
+
+    // Search by SubCategory filter
+    component['selectedSubCategoryFilter'].set('20');
+    expect(component['filteredProducts']()).toEqual([list[0]]);
+    component['selectedSubCategoryFilter'].set('');
+
+    // Search by SKU
+    component['productSearchQuery'].set('PR-1');
+    expect(component['filteredProducts']()).toEqual([list[0]]);
+
+    // Search by DisplayName
+    component['productSearchQuery'].set('elbow');
+    expect(component['filteredProducts']()).toEqual([list[1]]);
+
+    // Non-matching query
+    component['productSearchQuery'].set('xyz');
+    expect(component['filteredProducts']().length).toBe(0);
   });
 });

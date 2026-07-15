@@ -25,7 +25,7 @@ describe('ProductRepository', () => {
     repository = TestBed.inject(ProductRepository);
   });
 
-  it('should insert product and map attributes in transaction', async () => {
+  it('should insert product and variant in transaction', async () => {
     const product = {
       SKU: 'TEST-SKU',
       CategoryId: 1,
@@ -37,7 +37,7 @@ describe('ProductRepository', () => {
       CreatedAt: 'now'
     };
 
-    const id = await repository.insert(product, [2, 3]);
+    const id = await repository.insert(product, []);
 
     expect(mockDbService.runTransaction).toHaveBeenCalled();
     expect(mockDbService.run).toHaveBeenCalledWith(
@@ -45,17 +45,13 @@ describe('ProductRepository', () => {
       expect.any(Array)
     );
     expect(mockDbService.run).toHaveBeenCalledWith(
-      expect.stringContaining('INSERT INTO ProductAttribute'),
-      [10, 2]
-    );
-    expect(mockDbService.run).toHaveBeenCalledWith(
-      expect.stringContaining('INSERT INTO ProductAttribute'),
-      [10, 3]
+      expect.stringContaining('INSERT INTO ProductVariant'),
+      expect.any(Array)
     );
     expect(id).toBe(10);
   });
 
-  it('should update product and replace attributes in transaction', async () => {
+  it('should update variant in transaction', async () => {
     const product = {
       Id: 1,
       SKU: 'TEST-SKU',
@@ -68,35 +64,50 @@ describe('ProductRepository', () => {
       CreatedAt: 'now'
     };
 
-    await repository.update(product, [4]);
+    await repository.update(product);
 
     expect(mockDbService.runTransaction).toHaveBeenCalled();
     expect(mockDbService.run).toHaveBeenCalledWith(
-      expect.stringContaining('UPDATE Product SET SKU = ?'),
+      expect.stringContaining('UPDATE ProductVariant SET'),
       expect.any(Array)
-    );
-    expect(mockDbService.run).toHaveBeenCalledWith(
-      expect.stringContaining('DELETE FROM ProductAttribute'),
-      [1]
-    );
-    expect(mockDbService.run).toHaveBeenCalledWith(
-      expect.stringContaining('INSERT INTO ProductAttribute'),
-      [1, 4]
     );
   });
 
   it('should get product with attribute value display mappings', async () => {
     mockDbService.query.mockResolvedValueOnce([
-      { Id: 1, SKU: 'TEST-SKU', CategoryId: 1, DisplayName: 'Test Pipe' }
+      {
+        Id: 1,
+        SKU: 'TEST-SKU',
+        CategoryId: 1,
+        BrandName: 'Supreme',
+        CategoryName: 'Plumbing',
+        ProductName: 'Test Pipe',
+        sizeMm: 20,
+        sizeInch: '1/2"',
+        GST: 18,
+        SellingPrice: 100,
+        Unit: 'Mtr',
+        IsActive: 1,
+        CreatedAt: 'now'
+      }
     ]);
     mockDbService.query.mockResolvedValueOnce([
-      { attributeName: 'Brand', displayValue: 'Supreme' }
+      {
+        id: 1,
+        productId: 1,
+        sku: 'TEST-SKU',
+        sizeMm: 20,
+        sizeInch: '1/2"',
+        purchasePrice: 80,
+        sellingPrice: 100
+      }
     ]);
 
     const result = await repository.getProductWithAttributes(1);
 
     expect(result).toBeTruthy();
     expect(result!.product.SKU).toBe('TEST-SKU');
-    expect(result!.attributes).toEqual([{ attributeName: 'Brand', displayValue: 'Supreme' }]);
+    expect(result!.attributes).toContainEqual({ attributeName: 'Size (mm)', displayValue: '20mm' });
+    expect(result!.attributes).toContainEqual({ attributeName: 'Size (inch)', displayValue: '1/2"' });
   });
 });

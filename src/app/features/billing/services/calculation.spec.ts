@@ -1,11 +1,16 @@
+import { TestBed } from '@angular/core/testing';
 import { CalculationService } from './calculation.service';
+import { PricingService } from './pricing.service';
 import { InvoiceItem } from '../models/invoice.model';
 
 describe('CalculationService', () => {
   let service: CalculationService;
 
   beforeEach(() => {
-    service = new CalculationService();
+    TestBed.configureTestingModule({
+      providers: [CalculationService, PricingService]
+    });
+    service = TestBed.inject(CalculationService);
   });
 
   it('should calculate item amount (Qty * Rate) correctly rounded to 2 decimal places', () => {

@@ -3,13 +3,15 @@ import { InvoiceService } from './invoice.service';
 import { CalculationService } from './calculation.service';
 import { InvoiceItem } from '../models/invoice.model';
 
+import { PricingService } from './pricing.service';
+
 describe('InvoiceService', () => {
   let service: InvoiceService;
   let calcService: CalculationService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [InvoiceService, CalculationService]
+      providers: [InvoiceService, CalculationService, PricingService]
     });
     service = TestBed.inject(InvoiceService);
     calcService = TestBed.inject(CalculationService);

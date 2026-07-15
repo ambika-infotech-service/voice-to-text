@@ -3,11 +3,13 @@
  */
 export interface Category {
   /** Unique primary key identifier. */
-  readonly Id?: number;
+  readonly id?: number;
   /** Name of the category (e.g., 'Plumbing'). */
-  readonly Name: string;
+  readonly name: string;
+  /** Display order order weight. */
+  readonly displayOrder?: number;
   /** Active status (1 = Active, 0 = Inactive). */
-  readonly IsActive: number;
+  readonly isActive: number;
   /** ISO string timestamp when the category was created. */
-  readonly CreatedAt: string;
+  readonly createdAt: string;
 }
