@@ -1,1 +1,146 @@
+/* Styling overrides for InvoiceRow component */
 
+:host {
+  transition: all 0.2s ease;
+  
+  /* Highlight when row contains an active microphone */
+  &.listening-row {
+    background-color: rgba(239, 68, 68, 0.04) !important;
+    border-color: rgba(239, 68, 68, 0.3) !important;
+  }
+}
+
+/* Glowing animation for active listening mic */
+@keyframes mic-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+.btn-danger {
+  animation: mic-pulse 1.5s infinite;
+}
+
+@media (max-width: 768px) {
+  :host {
+    display: grid !important;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 12px;
+    padding: 1.2rem !important;
+    background: #ffffff;
+    border-radius: var(--radius-md) !important;
+    border: 1px solid var(--border-light) !important;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow-sm);
+    width: 100% !important;
+    
+    td {
+      display: block !important;
+      width: 100% !important;
+      border: none !important;
+      padding: 0 !important;
+      text-align: left !important;
+      
+      /* Item Name field */
+      &:nth-child(1) {
+        grid-column: span 12;
+        
+        &::before {
+          content: 'Item Description';
+          display: block;
+          font-size: 0.725rem;
+          font-weight: 700;
+          color: var(--text-muted);
+          margin-bottom: 4px;
+          text-transform: uppercase;
+          letter-spacing: 0.02em;
+        }
+      }
+      
+      /* Qty field */
+      &:nth-child(2) {
+        grid-column: span 4;
+        
+        &::before {
+          content: 'Qty';
+          display: block;
+          font-size: 0.725rem;
+          font-weight: 700;
+          color: var(--text-muted);
+          margin-bottom: 4px;
+          text-transform: uppercase;
+        }
+      }
+      
+      /* Unit field */
+      &:nth-child(3) {
+        grid-column: span 4;
+        
+        &::before {
+          content: 'Unit';
+          display: block;
+          font-size: 0.725rem;
+          font-weight: 700;
+          color: var(--text-muted);
+          margin-bottom: 4px;
+          text-transform: uppercase;
+        }
+      }
+      
+      /* Rate field */
+      &:nth-child(4) {
+        grid-column: span 4;
+        
+        &::before {
+          content: 'Rate';
+          display: block;
+          font-size: 0.725rem;
+          font-weight: 700;
+          color: var(--text-muted);
+          margin-bottom: 4px;
+          text-transform: uppercase;
+        }
+      }
+      
+      /* Calculated Amount */
+      &:nth-child(5) {
+        grid-column: span 7;
+        display: flex !important;
+        flex-direction: column;
+        justify-content: center;
+        font-size: 1.1rem;
+        color: var(--text-main);
+        
+        &::before {
+          content: 'Total Amount';
+          display: block;
+          font-size: 0.725rem;
+          font-weight: 700;
+          color: var(--text-muted);
+          margin-bottom: 4px;
+          text-transform: uppercase;
+        }
+      }
+      
+      /* Delete Action Button */
+      &:nth-child(6) {
+        grid-column: span 5;
+        display: flex !important;
+        align-items: flex-end;
+        justify-content: flex-end;
+        
+        .btn {
+          width: 100%;
+          min-height: 38px;
+          font-size: 0.85rem;
+        }
+      }
+    }
+  }
+}

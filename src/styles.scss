@@ -1,1 +1,325 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global styles and custom variables */
+
+:root {
+  --primary-color: #6adef7;
+  --primary-hover: #4ed5f0;
+  --primary-dark: #007c91; /* Accessible cyan/teal for text & active outlines */
+  --primary-dark-hover: #006070;
+  --primary-gradient: linear-gradient(135deg, #6adef7 0%, #0097b2 100%);
+  --secondary-color: #0f172a;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --danger-color: #ef4444;
+  --bg-light: #f8fafc;
+  --bg-card: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-light: #e2e8f0;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.06), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+  --shadow-hover: 0 20px 25px -5px rgba(0, 151, 178, 0.08), 0 8px 10px -6px rgba(0, 151, 178, 0.04);
+  
+  /* Radii */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 9999px;
+  
+  /* Safe-area for mobile notch screen spaces */
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--bg-light);
+  color: var(--text-main);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Premium Card Designs */
+.card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-light) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  
+  &.hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg) !important;
+    border-color: rgba(0, 151, 178, 0.2) !important;
+  }
+}
+
+.card-header {
+  border-bottom: 1px solid var(--border-light) !important;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Custom Interactive Buttons */
+.btn {
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 1.2rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.btn-primary {
+  background: var(--primary-gradient);
+  border: none;
+  color: #0f172a !important; /* Dark text on bright cyan background for accessible contrast */
+  box-shadow: 0 4px 10px rgba(0, 151, 178, 0.15);
+  
+  &:hover, &:focus, &:active {
+    background: linear-gradient(135deg, #4ed5f0 0%, #0097b2 100%) !important;
+    box-shadow: 0 6px 14px rgba(0, 151, 178, 0.25);
+    color: #0f172a !important;
+  }
+}
+
+.btn-outline-primary {
+  border-color: var(--primary-dark);
+  color: var(--primary-dark);
+  
+  &:hover, &:focus, &:active {
+    background-color: var(--primary-dark) !important;
+    border-color: var(--primary-dark) !important;
+    color: #fff !important;
+  }
+}
+
+/* Touch-optimized Form Elements for Mobile */
+.form-control, .form-select {
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+  padding: 0.625rem 0.875rem; /* Larger touch area for fingers */
+  font-size: 0.925rem;
+  color: var(--text-main);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.01);
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  min-height: 44px; /* WCAG AA Touch Target Target Minimum */
+  
+  &:focus {
+    border-color: var(--primary-dark);
+    box-shadow: 0 0 0 3px rgba(0, 151, 178, 0.15);
+    outline: 0;
+  }
+}
+
+.form-control-sm, .form-select-sm {
+  min-height: 38px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+label.form-label {
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 0.4rem;
+  font-size: 0.825rem;
+  letter-spacing: 0.02em;
+}
+
+/* Mobile Bottom Navigation Bar Styles */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  justify-content: space-around;
+  padding: 6px 0 calc(6px + var(--safe-area-bottom));
+  z-index: 1040;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  text-decoration: none;
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 4px 0;
+  transition: color 0.15s ease;
+  position: relative;
+  
+  i {
+    font-size: 1.35rem;
+    margin-bottom: 3px;
+    transition: transform 0.2s ease;
+  }
+  
+  &.active {
+    color: var(--primary-dark); /* Using accessible primary-dark text against light page backgrounds */
+    
+    i {
+      transform: translateY(-2px);
+    }
+  }
+}
+
+/* Modern Segmented Control Tab Switcher */
+.segmented-control {
+  display: flex;
+  background-color: #f1f5f9;
+  padding: 4px;
+  border-radius: var(--radius-md);
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.segmented-tab {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 8px 12px;
+  font-weight: 700;
+  font-size: 0.875rem;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+  
+  &.active {
+    background-color: #ffffff;
+    color: var(--primary-dark); /* Using accessible dark accent text on light tabs */
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+/* Responsive Table Card Layout for Screens < 768px */
+@media (max-width: 768px) {
+  .responsive-card-table {
+    display: block;
+    width: 100% !important;
+    border: none !important;
+    background: transparent !important;
+    
+    thead {
+      display: none !important; /* Hide column headers on mobile */
+    }
+    
+    tbody {
+      display: block;
+      width: 100% !important;
+    }
+    
+    tr {
+      display: block;
+      width: 100% !important;
+      background: var(--bg-card);
+      border: 1px solid var(--border-light) !important;
+      border-radius: var(--radius-md);
+      padding: 1.2rem;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow-sm);
+      
+      &:hover {
+        box-shadow: var(--shadow-md);
+      }
+    }
+    
+    td {
+      display: flex !important;
+      justify-content: space-between;
+      align-items: center;
+      text-align: right !important;
+      padding: 0.5rem 0 !important;
+      border-bottom: 1px dashed var(--border-light) !important;
+      width: 100% !important;
+      font-size: 0.875rem;
+      color: var(--text-main);
+      
+      &:last-child {
+        border-bottom: none !important;
+        justify-content: flex-end;
+        padding-top: 0.8rem !important;
+      }
+      
+      &::before {
+        content: attr(data-label);
+        font-weight: 700;
+        color: var(--text-muted);
+        text-align: left;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-right: 1.5rem;
+      }
+      
+      /* Reset child alignments inside td for mobile cards */
+      .btn-group {
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+        gap: 6px;
+        
+        .btn {
+          flex: 1;
+          max-width: 100px;
+        }
+      }
+      
+      code {
+        font-size: 0.825rem;
+      }
+      
+      .badge {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.6rem;
+      }
+    }
+  }
+  
+  /* Extra space at bottom of pages to prevent content cutoff by sticky bottom tabbar */
+  main {
+    padding-bottom: 80px !important;
+  }
+}
+
+/* Global Bootstrap utility class overrides to support our custom cyan scheme */
+.text-primary {
+  color: var(--primary-dark) !important;
+}
+
+.bg-primary {
+  background-color: var(--primary-dark) !important;
+  background-image: var(--primary-gradient) !important;
+  color: #0f172a !important;
+}
+
+.bg-primary-subtle {
+  background-color: rgba(6, 180, 212, 0.1) !important;
+  color: var(--primary-dark) !important;
+}
+
+.border-primary {
+  border-color: var(--primary-dark) !important;
+}
+
+.badge.bg-primary-subtle {
+  color: var(--primary-dark) !important;
+  border: 1px solid rgba(6, 180, 212, 0.2) !important;
+}

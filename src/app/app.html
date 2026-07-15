@@ -1,68 +1,124 @@
-<main class="bg-light min-vh-100 py-4">
-    <div class="container-fluid px-md-5">
-        <!-- Header Title -->
-        <div class="text-center mb-4">
-            <h1 class="h3 font-weight-bold mb-1 text-primary">Hardware Store ERP System</h1>
-            <p class="text-secondary small">Comprehensive Billing, Speech Assistance & Database Management Modules</p>
-        </div>
-
-        <!-- 1. DATABASE LOADING PHASE -->
-        @if (!isDbReady() && !dbErrorMsg()) {
-        <div class="row justify-content-center my-5">
-            <div class="col-md-6 text-center">
-                <div class="spinner-border text-primary mb-3" role="status"></div>
-                <p class="text-muted small">Bootstrapping SQLite engine and running migrations...</p>
+<main class="min-vh-100 bg-light">
+    <!-- Premium Top Header Bar -->
+    <header class="bg-white border-bottom py-3 px-3 px-md-5 mb-4 sticky-top shadow-sm">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h5 font-weight-bold mb-0 text-primary d-flex align-items-center gap-2">
+                    <span class="p-2 bg-primary-subtle text-primary rounded-3 d-inline-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                        <i class="bi bi-mic-fill fs-5"></i>
+                    </span>
+                    <span>Hardware Store ERP</span>
+                </h1>
+                <p class="text-muted small mb-0 d-none d-md-block">Voice-Assisted Accounting & CRUD Manager</p>
+            </div>
+            
+            <!-- Connection Status Indicator -->
+            <div class="d-flex align-items-center gap-2">
+                @if (isDbReady()) {
+                    <span class="badge bg-success-subtle text-success border rounded-pill px-3 py-2 small d-inline-flex align-items-center gap-1.5 shadow-sm">
+                        <span class="spinner-grow spinner-grow-sm text-success" style="width: 8px; height: 8px;" role="status"></span>
+                        SQLite Connected
+                    </span>
+                } @else if (dbErrorMsg()) {
+                    <span class="badge bg-danger-subtle text-danger border rounded-pill px-3 py-2 small d-inline-flex align-items-center gap-1.5 shadow-sm">
+                        <i class="bi bi-exclamation-circle-fill"></i>
+                        DB Connection Error
+                    </span>
+                } @else {
+                    <span class="badge bg-warning-subtle text-warning border rounded-pill px-3 py-2 small d-inline-flex align-items-center gap-1.5 shadow-sm">
+                        <span class="spinner-border spinner-border-sm text-warning" style="width: 12px; height: 12px;" role="status"></span>
+                        Bootstrapping DB
+                    </span>
+                }
             </div>
         </div>
+    </header>
+
+    <div class="container-fluid px-3 px-md-5">
+        <!-- 1. DATABASE LOADING PHASE -->
+        @if (!isDbReady() && !dbErrorMsg()) {
+            <div class="row justify-content-center my-5">
+                <div class="col-md-6 text-center py-5">
+                    <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+                    <h5 class="font-weight-bold text-dark">Initializing Application Layer</h5>
+                    <p class="text-muted small">Bootstrapping SQLite engine and running migrations...</p>
+                </div>
+            </div>
         }
 
         <!-- 2. DATABASE ERROR STATE -->
         @if (dbErrorMsg()) {
-        <div class="row justify-content-center my-5">
-            <div class="col-md-8">
-                <div class="alert alert-danger shadow-sm" role="alert">
-                    <h4 class="alert-heading h5 font-weight-bold mb-2">SQLite Initialization Error</h4>
-                    <p class="small mb-3">The application failed to open the persistent local data layer connection.</p>
-                    <hr>
-                    <code class="small d-block bg-white p-2 border rounded">{{ dbErrorMsg() }}</code>
+            <div class="row justify-content-center my-5">
+                <div class="col-md-8">
+                    <div class="alert alert-danger shadow-sm border-start border-4 border-danger p-4" role="alert">
+                        <h4 class="alert-heading h5 font-weight-bold mb-2">SQLite Initialization Error</h4>
+                        <p class="small mb-3">The application failed to open the persistent local data layer connection.</p>
+                        <hr>
+                        <code class="small d-block bg-white p-3 border rounded text-danger overflow-x-auto">{{ dbErrorMsg() }}</code>
+                    </div>
                 </div>
             </div>
-        </div>
         }
 
         <!-- 3. MAIN DASHBOARD CONTENT -->
         @if (isDbReady()) {
-        <!-- Tab Switcher Navigation -->
-        <div class="row justify-content-center mb-4">
-            <div class="col-lg-10">
-                <div class="d-flex justify-content-center bg-white p-2 rounded shadow-sm gap-2">
-                    <a routerLink="/billing" routerLinkActive="btn-primary" [routerLinkActiveOptions]="{exact: true}" class="btn flex-grow-1 py-2 font-weight-bold btn-light">
-                        A4 Invoice Generator
-                    </a>
-                    <a routerLink="/customers" routerLinkActive="btn-primary" class="btn flex-grow-1 py-2 font-weight-bold btn-light">
-                        Customer Management
-                    </a>
-                    <a routerLink="/business-contacts" routerLinkActive="btn-primary" class="btn flex-grow-1 py-2 font-weight-bold btn-light">
-                        Business Contacts
-                    </a>
-                    <a routerLink="/speech" routerLinkActive="btn-primary" class="btn flex-grow-1 py-2 font-weight-bold btn-light">
-                        Voice Assistant Demo
-                    </a>
-                    <a routerLink="/database" routerLinkActive="btn-primary" class="btn flex-grow-1 py-2 font-weight-bold btn-light">
-                        Database CRUD Manager
-                    </a>
+            <!-- Tab Switcher Navigation (DESKTOP / TABLET ONLY) -->
+            <div class="row justify-content-center mb-4 d-none d-md-flex">
+                <div class="col-lg-12">
+                    <div class="d-flex justify-content-center bg-white p-2 rounded-3 shadow-sm border border-light gap-2">
+                        <a routerLink="/billing" routerLinkActive="btn-primary" [routerLinkActiveOptions]="{exact: true}" class="btn flex-grow-1 py-2.5 font-weight-bold btn-light">
+                            <i class="bi bi-file-earmark-text-fill"></i> A4 Invoice Generator
+                        </a>
+                        <a routerLink="/customers" routerLinkActive="btn-primary" class="btn flex-grow-1 py-2.5 font-weight-bold btn-light">
+                            <i class="bi bi-people-fill"></i> Customer Management
+                        </a>
+                        <a routerLink="/business-contacts" routerLinkActive="btn-primary" class="btn flex-grow-1 py-2.5 font-weight-bold btn-light">
+                            <i class="bi bi-journal-bookmark-fill"></i> Business Contacts
+                        </a>
+                        <a routerLink="/speech" routerLinkActive="btn-primary" class="btn flex-grow-1 py-2.5 font-weight-bold btn-light">
+                            <i class="bi bi-mic-fill"></i> Voice Assistant Demo
+                        </a>
+                        <a routerLink="/database" routerLinkActive="btn-primary" class="btn flex-grow-1 py-2.5 font-weight-bold btn-light">
+                            <i class="bi bi-database-fill"></i> Database CRUD Manager
+                        </a>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Render Views -->
-        <div class="row justify-content-center">
-            <div class="col-lg-10 col-12">
-                <router-outlet></router-outlet>
+            <!-- Render Views -->
+            <div class="row justify-content-center">
+                <div class="col-lg-12 col-12">
+                    <router-outlet></router-outlet>
+                </div>
             </div>
-        </div>
         }
     </div>
+
+    <!-- Sticky Bottom Navigation Bar (MOBILE ONLY) -->
+    @if (isDbReady()) {
+        <nav class="mobile-bottom-nav d-md-none">
+            <a routerLink="/billing" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="mobile-nav-item">
+                <i class="bi bi-file-earmark-text-fill"></i>
+                <span>Invoice</span>
+            </a>
+            <a routerLink="/customers" routerLinkActive="active" class="mobile-nav-item">
+                <i class="bi bi-people-fill"></i>
+                <span>Customers</span>
+            </a>
+            <a routerLink="/business-contacts" routerLinkActive="active" class="mobile-nav-item">
+                <i class="bi bi-journal-bookmark-fill"></i>
+                <span>Contacts</span>
+            </a>
+            <a routerLink="/speech" routerLinkActive="active" class="mobile-nav-item">
+                <i class="bi bi-mic-fill"></i>
+                <span>Assistant</span>
+            </a>
+            <a routerLink="/database" routerLinkActive="active" class="mobile-nav-item">
+                <i class="bi bi-database-fill"></i>
+                <span>Database</span>
+            </a>
+        </nav>
+    }
 </main>
 
 <!-- Reusable global UI overlay components -->

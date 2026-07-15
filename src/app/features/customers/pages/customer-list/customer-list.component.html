@@ -63,7 +63,7 @@
                 }
             </div>
         } @else {
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0 responsive-card-table">
                 <thead class="table-light text-secondary small uppercase">
                     <tr>
                         <th class="ps-4">Company Name</th>
@@ -78,7 +78,7 @@
                     @for (customer of customers(); track customer.id) {
                         <tr>
                             <!-- Company -->
-                            <td class="ps-4 font-weight-semibold text-dark">
+                            <td data-label="Company Name" class="ps-4 font-weight-semibold text-dark">
                                 @if (customer.company_name) {
                                     {{ customer.company_name }}
                                 } @else {
@@ -86,11 +86,11 @@
                                 }
                             </td>
                             <!-- Customer Name -->
-                            <td>
+                            <td data-label="Customer Name">
                                 <span class="font-weight-medium">{{ customer.customer_name }}</span>
                             </td>
                             <!-- Mobile -->
-                            <td>
+                            <td data-label="Mobile Number">
                                 @if (customer.mobile) {
                                     <code class="text-dark bg-light px-2 py-1 rounded small">{{ customer.mobile }}</code>
                                 } @else {
@@ -98,13 +98,13 @@
                                 }
                             </td>
                             <!-- Workers Count Badge -->
-                            <td>
+                            <td data-label="Contacts">
                                 <span class="badge bg-secondary-subtle text-secondary border px-2.5 py-1.5 rounded-pill small">
                                     {{ customer.contact_count ?? 0 }} contact(s)
                                 </span>
                             </td>
                             <!-- GSTIN -->
-                            <td>
+                            <td data-label="GST Number">
                                 @if (customer.gst_number) {
                                     <code class="text-primary bg-primary-subtle px-2 py-1 rounded small">{{ customer.gst_number }}</code>
                                 } @else {
@@ -112,7 +112,7 @@
                                 }
                             </td>
                             <!-- Actions -->
-                            <td class="text-end pe-4">
+                            <td data-label="Actions" class="text-end pe-4">
                                 <div class="btn-group gap-1">
                                     <a [routerLink]="['/customers', customer.id]" 
                                        class="btn btn-outline-info btn-sm px-2.5 d-inline-flex align-items-center gap-1.5"
