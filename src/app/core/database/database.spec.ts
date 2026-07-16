@@ -110,15 +110,15 @@ describe('DatabaseService', () => {
     expect(mockDbInstance.open).toHaveBeenCalled();
   });
 
-  it('should run migrations and seed when initializing a clean database (version = 0)', async () => {
+  it('should run migrations when initializing a clean database (version = 0)', async () => {
     await service.initialize();
 
     expect(mockDbInstance.execute).toHaveBeenCalledWith(expect.stringContaining('CREATE TABLE IF NOT EXISTS Category'));
     expect(mockDbInstance.execute).toHaveBeenCalledWith(expect.stringContaining('PRAGMA user_version = 1;'));
-    expect(mockDbInstance.run).toHaveBeenCalledWith(expect.stringContaining('INSERT OR IGNORE INTO Category'), [], false);
+    expect(mockDbInstance.execute).toHaveBeenCalledWith(expect.stringContaining('PRAGMA user_version = 5;'));
   });
 
-  it('should run only outstanding migrations (and skip seeds) when database version is positive but outdated', async () => {
+  it('should run only outstanding migrations when database version is positive but outdated', async () => {
     mockDbInstance.query.mockImplementation((stmt: string) => {
       if (stmt.includes('PRAGMA user_version;')) {
         return Promise.resolve({ values: [{ user_version: 1 }] });
