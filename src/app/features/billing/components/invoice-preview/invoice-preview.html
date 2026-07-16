@@ -85,7 +85,7 @@
                 </thead>
                 <tbody>
                     <!-- Live line items list -->
-                    @for (item of invoice().items; track item; let idx = $index) {
+                    @for (item of invoice().items; track $index; let idx = $index) {
                     <tr>
                         <td class="text-center text-muted">{{ idx + 1 }}</td>
                         <td class="text-dark">{{ item.itemName || 'Item Name Placeholder' }}</td>

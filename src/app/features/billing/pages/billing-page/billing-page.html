@@ -1,7 +1,17 @@
+<!-- Mobile Segmented View Controller (Visible only on screens below Extra Large) -->
+<div class="d-xl-none segmented-control shadow-sm">
+    <button type="button" class="segmented-tab" [class.active]="activeMobileView() === 'form'" (click)="setMobileView('form')">
+        <i class="bi bi-pencil-square"></i> Edit Form
+    </button>
+    <button type="button" class="segmented-tab" [class.active]="activeMobileView() === 'preview'" (click)="setMobileView('preview')">
+        <i class="bi bi-file-earmark-pdf"></i> A4 Preview
+    </button>
+</div>
+
 <div class="row g-4">
-    <!-- Left Column: Interactive Invoice Billing Editor -->
-    <div class="col-xl-6">
-        <div class="mb-2">
+    <!-- Left Column: Interactive Invoice Billing Editor (Form inputs) -->
+    <div class="col-xl-6 d-xl-block" [class.d-none]="activeMobileView() !== 'form'">
+        <div class="mb-3 d-none d-xl-block">
             <h2 class="h5 font-weight-bold mb-1 text-dark">Invoice Generator</h2>
             <p class="text-secondary small">Add products, configure quantities, and manage customer billing details.</p>
         </div>
@@ -9,24 +19,14 @@
     </div>
 
     <!-- Right Column: Live Sticky A4 Print Preview -->
-    <div class="col-xl-6 d-none d-xl-block">
-        <div class="mb-2">
+    <div class="col-xl-6 d-xl-block" [class.d-none]="activeMobileView() !== 'preview'">
+        <div class="mb-3 d-none d-xl-block">
             <h2 class="h5 font-weight-bold mb-1 text-dark">Live A4 Paper Preview</h2>
             <p class="text-secondary small">Real-time print alignment, tax breakdown, and signature areas.</p>
         </div>
-        <!-- Sticky positioning keeps the print preview in view while scrolling long item forms -->
-        <div class="sticky-xl-top" style="top: 20px; z-index: 100;">
+        <!-- Sticky positioning keeps the print preview in view while scrolling long item forms on desktop -->
+        <div class="sticky-xl-top" style="top: 90px; z-index: 90;">
             <app-invoice-preview></app-invoice-preview>
         </div>
-    </div>
-
-    <!-- Mobile/Tablet Fallback Preview Drawer (Visible at the bottom on smaller viewports) -->
-    <div class="col-12 d-xl-none mt-5">
-        <hr class="my-4">
-        <div class="mb-3">
-            <h2 class="h5 font-weight-bold mb-1 text-dark">A4 Paper Preview</h2>
-            <p class="text-secondary small">Live view of the compiled accounting taxonomy.</p>
-        </div>
-        <app-invoice-preview></app-invoice-preview>
     </div>
 </div>

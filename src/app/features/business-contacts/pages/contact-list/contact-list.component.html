@@ -78,7 +78,7 @@
                 }
             </div>
         } @else {
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0 responsive-card-table">
                 <thead class="table-light text-secondary small uppercase">
                     <tr>
                         <th class="ps-4">Name</th>
@@ -93,11 +93,11 @@
                     @for (contact of contacts(); track contact.id) {
                         <tr>
                             <!-- Name -->
-                            <td class="ps-4">
+                            <td data-label="Name" class="ps-4">
                                 <span class="font-weight-semibold text-dark">{{ contact.name }}</span>
                             </td>
                             <!-- Mobile -->
-                            <td>
+                            <td data-label="Mobile">
                                 @if (contact.mobile) {
                                     <code class="text-dark bg-light px-2 py-1 rounded small">{{ contact.mobile }}</code>
                                 } @else {
@@ -105,7 +105,7 @@
                                 }
                             </td>
                             <!-- Mapped Roles Badges -->
-                            <td>
+                            <td data-label="Roles">
                                 <div class="d-flex flex-wrap gap-1">
                                     @for (role of contact.roles; track role) {
                                         <span class="badge bg-primary-subtle text-primary border px-2 py-1 small rounded-pill">
@@ -117,11 +117,11 @@
                                 </div>
                             </td>
                             <!-- City -->
-                            <td>
+                            <td data-label="City">
                                 <span class="small font-weight-medium text-dark">{{ contact.city || '—' }}</span>
                             </td>
                             <!-- Status -->
-                            <td>
+                            <td data-label="Status">
                                 @if (contact.is_active === 1) {
                                     <span class="badge bg-success-subtle text-success border rounded-pill px-2.5 py-1.5 small">Active</span>
                                 } @else {
@@ -129,7 +129,7 @@
                                 }
                             </td>
                             <!-- Actions -->
-                            <td class="text-end pe-4">
+                            <td data-label="Actions" class="text-end pe-4">
                                 <div class="btn-group gap-1">
                                     <a [routerLink]="['/business-contacts', contact.id]" 
                                        class="btn btn-outline-info btn-sm px-2.5 d-inline-flex align-items-center gap-1.5"
@@ -142,8 +142,8 @@
                                         <i class="bi bi-pencil-fill"></i> Edit
                                     </a>
                                     <button (click)="deleteContact(contact)" 
-                                            class="btn btn-outline-danger btn-sm px-2.5 d-inline-flex align-items-center gap-1.5"
-                                            title="Delete Contact">
+                                             class="btn btn-outline-danger btn-sm px-2.5 d-inline-flex align-items-center gap-1.5"
+                                             title="Delete Contact">
                                         <i class="bi bi-trash3-fill"></i> Delete
                                     </button>
                                 </div>
