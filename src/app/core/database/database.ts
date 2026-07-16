@@ -7,7 +7,7 @@ import { MigrationV2 } from './migrations/migration-v2';
 import { MigrationV3 } from './migrations/migration-v3';
 import { MigrationV4 } from './migrations/migration-v4';
 import { MigrationV5 } from './migrations/migration-v5';
-import { SeedV1 } from './seed/seed-v1';
+import { Seed } from './types/database.types';
 
 /**
  * Service managing the SQLite database initialization, connection pooling,
@@ -22,7 +22,7 @@ export class DatabaseService {
   private isTransactionActive = false; // Tracks transaction context state
 
   private readonly migrations = [MigrationV1, MigrationV2, MigrationV3, MigrationV4, MigrationV5];
-  private readonly seeds = [SeedV1];
+  private readonly seeds: Seed[] = [];
 
   constructor() {
     this.initializeSQLiteEngine();
